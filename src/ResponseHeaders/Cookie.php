@@ -11,17 +11,16 @@
 
 namespace Polymorphine\Session\ResponseHeaders;
 
-use Polymorphine\Session\ResponseHeaders;
 use LogicException;
 use DateTime;
 
 
-class CookieSetup
+class Cookie
 {
     private const MAX_TIME = 2628000;
 
-    private $headers;
     private $name;
+    private $value;
 
     private $minutes;
     private $domain;
@@ -32,46 +31,90 @@ class CookieSetup
     private $sameSite;
 
     /**
-     * Default cookie attributes can be overridden with $attributes array with following keys:
+     * Creates default cookie directive with given name.
+     * Prefixed name will force following settings:
+     * __Secure- force: secure
+     * __Host-   force & lock: secure, domain (current) & path (root).
+     *
+     * @param string $name
+     */
+    public function __construct(string $name)
+    {
+        $this->name = $this->parsedPrefix($name);
+    }
+
+    /**
+     * Cookie attributes can be set with following $attributes array keys:
      * - domain   => (string) override default domain (current request domain)
      * - path     => (string) override default cookie path (root path)
-     * - expires  => (int) minutes (empty not null value will set permanent cookie)
+     * - expires  => (int) minutes (empty value will set permanent cookie)
      * - httpOnly => (bool) true will override default (false)
      * - secure   => (bool) true will override default (false)
-     * - sameSite => (string) 'Strict'|'Lax' ('Lax' will be set for any non-empty value).
+     * - sameSite => (string) 'Strict'|'Lax' ('Lax' will be also set for any non-empty value).
      *
-     * `__Secure-` name prefix will force secure cookie
-     * `__Host-` name prefix will force (and lock) secure, current domain & root path cookie
+     * @param $name
+     * @param array $attributes
      *
-     * @param string          $name
-     * @param ResponseHeaders $headers
-     * @param array           $attributes
+     * @return Cookie
      */
-    public function __construct(string $name, ResponseHeaders $headers, array $attributes = [])
+    public static function fromArray($name, $attributes = []): self
     {
-        $this->name    = $name;
-        $this->headers = $headers;
-        $this->parsePrefix($name);
-        $this->setAttributes($attributes);
+        $cookie = new self($name);
+        if (isset($attributes['domain'])) {
+            $cookie->domain($attributes['domain']);
+        }
+        if (isset($attributes['path'])) { $cookie->path($attributes['path']); }
+        if (array_key_exists('expires', $attributes)) {
+            $attributes['expires'] ? $cookie->expires($attributes['expires']) : $cookie->permanent();
+        }
+        if (!empty($attributes['httpOnly'])) { $cookie->httpOnly(); }
+        if (!empty($attributes['secure'])) { $cookie->secure(); }
+        if (!empty($attributes['sameSite'])) {
+            $cookie->setSameSiteDirective($attributes['sameSite'] === 'Strict' ? 'Strict' : 'Lax');
+        }
+        return $cookie;
+    }
+
+    public static function prefixedSecure(string $name, array $attributes = []): self
+    {
+        $name = '__Secure-' . $name;
+        return $attributes ? self::fromArray($name, $attributes) : new self($name);
+    }
+
+    public static function prefixedHost(string $name, array $attributes = []): self
+    {
+        $name = '__Host-' . $name;
+        return $attributes ? self::fromArray($name, $attributes) : new self($name);
+    }
+
+    public function __toString()
+    {
+        return $this->header();
     }
 
     /**
-     * Sets cookie header with provided value and attribute settings.
+     * Sets cookie value.
      *
      * @param string $value
+     *
+     * @return static
      */
-    public function value(string $value): void
+    public function value(string $value): self
     {
-        $this->headers->add('Set-Cookie', $this->header($value));
+        $this->value = $value;
+        return $this;
     }
 
     /**
-     * Sets header removing cookie with given params.
+     * Remove cookie header directive.
+     *
+     * @return static
      */
-    public function remove(): void
+    public function remove(): self
     {
         $this->minutes = -self::MAX_TIME;
-        $this->headers->add('Set-Cookie', $this->header(null));
+        $this->value   = null;
+        return $this;
     }
 
     /**
@@ -79,9 +122,9 @@ class CookieSetup
      *
      * @param int $minutes
      *
-     * @return CookieSetup
+     * @return static
      */
-    public function expires(int $minutes): CookieSetup
+    public function expires(int $minutes): self
     {
         $this->minutes = $minutes;
         return $this;
@@ -90,9 +133,9 @@ class CookieSetup
     /**
      * Sets expiry date that makes cookie practically permanent.
      *
-     * @return CookieSetup
+     * @return static
      */
-    public function permanent(): CookieSetup
+    public function permanent(): self
     {
         $this->minutes = self::MAX_TIME;
         return $this;
@@ -108,9 +151,9 @@ class CookieSetup
      *
      * @throws LogicException
      *
-     * @return CookieSetup
+     * @return static
      */
-    public function domain(string $domain): CookieSetup
+    public function domain(string $domain): self
     {
         if ($this->hostLock) {
             throw new LogicException('Cannot set domain in cookies with `__Host-` name prefix');
@@ -130,9 +173,9 @@ class CookieSetup
      *
      * @throws LogicException
      *
-     * @return CookieSetup
+     * @return static
      */
-    public function path(string $path): CookieSetup
+    public function path(string $path): self
     {
         if ($this->hostLock) {
             throw new LogicException('Cannot set path in cookies with `__Host-` name prefix');
@@ -146,9 +189,9 @@ class CookieSetup
      * Sets HttpOnly cookie directive that orders browsers to deny access
      * to its content from client-side executable scripts.
      *
-     * @return CookieSetup
+     * @return static
      */
-    public function httpOnly(): CookieSetup
+    public function httpOnly(): self
     {
         $this->httpOnly = true;
         return $this;
@@ -158,9 +201,9 @@ class CookieSetup
      * Sets Secure cookie directive that prevents cookie to be sent with
      * unencrypted protocol (http), so its content cannot be intercepted.
      *
-     * @return CookieSetup
+     * @return static
      */
-    public function secure(): CookieSetup
+    public function secure(): self
     {
         $this->secure = true;
         return $this;
@@ -170,9 +213,9 @@ class CookieSetup
      * Sets 'Strict' as SameSite attribute which orders browsers to sent
      * cookie back only when website is called directly.
      *
-     * @return CookieSetup
+     * @return static
      */
-    public function sameSiteStrict(): CookieSetup
+    public function sameSiteStrict(): self
     {
         $this->setSameSiteDirective('Strict');
         return $this;
@@ -182,9 +225,9 @@ class CookieSetup
      * Sets 'Lax' as SameSite attribute which orders browsers to sent
      * cookie back only when website is called directly or with GET method.
      *
-     * @return CookieSetup
+     * @return static
      */
-    public function sameSiteLax(): CookieSetup
+    public function sameSiteLax(): self
     {
         $this->setSameSiteDirective('Lax');
         return $this;
@@ -198,39 +241,22 @@ class CookieSetup
         $this->sameSite = $value;
     }
 
-    private function parsePrefix(string $name): void
+    private function parsedPrefix(string $name): string
     {
+        if ($name[0] !== '_') { return $name; }
+
         $secure = (stripos($name, '__Secure-') === 0);
-        $host   = (stripos($name, '__Host-') === 0);
-        if (!$host && !$secure) { return; }
+        $host   = !$secure && (stripos($name, '__Host-') === 0);
 
-        $this->secure = true;
-        if ($secure) { return; }
+        $this->secure   = $host || $secure;
+        $this->hostLock = $host;
 
-        $this->hostLock = true;
+        return $name;
     }
 
-    private function setAttributes(array $attr): void
+    private function header(): string
     {
-        if (isset($attr['domain'])) { $this->domain($attr['domain']); }
-        if (isset($attr['path'])) { $this->path($attr['path']); }
-        if (isset($attr['expires'])) {
-            $attr['expires'] ? $this->expires($attr['expires']) : $this->permanent();
-        }
-        if (!empty($attr['httpOnly'])) {
-            $this->httpOnly = true;
-        }
-        if (!empty($attr['secure'])) {
-            $this->secure = true;
-        }
-        if (!empty($attr['sameSite'])) {
-            $this->setSameSiteDirective($attr['sameSite'] === 'Strict' ? 'Strict' : 'Lax');
-        }
-    }
-
-    private function header($value): string
-    {
-        $header = $this->name . '=' . $value;
+        $header = $this->name . '=' . $this->value;
 
         if ($this->domain) {
             $header .= '; Domain=' . (string) $this->domain;

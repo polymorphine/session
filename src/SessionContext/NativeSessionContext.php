@@ -22,7 +22,7 @@ use RuntimeException;
 
 class NativeSessionContext implements MiddlewareInterface, SessionContext
 {
-    private $headers;
+    private $cookie;
     private $cookieOptions;
 
     /** @var SessionData */
@@ -31,9 +31,8 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
     private $sessionName;
     private $sessionStarted = false;
 
-    public function __construct(ResponseHeaders $headers, array $cookieOptions = [])
+    public function __construct(array $cookieOptions = [])
     {
-        $this->headers       = $headers;
         $this->cookieOptions = $cookieOptions;
     }
 
@@ -47,7 +46,8 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
 
         $response = $handler->handle($request);
         $this->data()->commit();
-        return $response;
+
+        return $this->cookie ? $response->withAddedHeader('Set-Cookie', (string) $this->cookie) : $response;
     }
 
     public function data(): SessionData
@@ -87,6 +87,8 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
             $this->setSessionCookie();
         }
 
+        if ($_SESSION === $data) { return; }
+
         $_SESSION = $data;
         session_write_close();
     }
@@ -99,14 +101,14 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
     protected function setSessionCookie(): void
     {
         $attributes = $this->cookieOptions + ['httpOnly' => true, 'sameSite' => 'Lax'];
-        $this->headers->cookie($this->sessionName, $attributes)->value(session_id());
+        $this->cookie = ResponseHeaders\Cookie::fromArray($this->sessionName, $attributes)->value(session_id());
     }
 
     private function destroy(): void
     {
         if (!$this->sessionStarted) { return; }
 
-        $this->headers->cookie($this->sessionName)->remove();
+        $this->cookie = (new ResponseHeaders\Cookie($this->sessionName))->remove();
         session_destroy();
     }
 }
