@@ -41,7 +41,7 @@ class NativeSessionContextTest extends TestCase
 
     public function testSessionInitialization()
     {
-        $context = $this->context(['secure' => true]);
+        $context = $this->context(['Secure' => true]);
         $handler = $this->handler(function () use ($context) {
             $context->data()->set('foo', 'bar');
         });
@@ -73,7 +73,7 @@ class NativeSessionContextTest extends TestCase
     {
         SessionGlobalState::$data = ['foo' => 'bar'];
 
-        $context = $this->context(['httpOnly' => false, 'sameSite' => 'Strict']);
+        $context = $this->context(['HttpOnly' => false, 'SameSite' => 'Strict']);
         $handler = $this->handler(function () use ($context) {
             $context->resetContext();
         });

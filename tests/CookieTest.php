@@ -35,21 +35,21 @@ class CookieTest extends TestCase
     {
         $cookie = $this->cookie($data['name']);
 
-        if (isset($data['expires'])) {
-            empty($data['expires']) ? $cookie->permanent() : $cookie->expires($data['expires']);
+        if (isset($data['MaxAge'])) {
+            empty($data['MaxAge']) ? $cookie->setPermanent() : $cookie->setMaxAge($data['MaxAge']);
         }
-        if (isset($data['domain'])) { $cookie->domain($data['domain']); }
-        if (isset($data['path'])) { $cookie->path($data['path']); }
-        if (isset($data['secure'])) { $cookie->secure(); }
-        if (isset($data['httpOnly'])) { $cookie->httpOnly(); }
-        if (isset($data['sameSite']) && $data['sameSite'] === 'Strict') {
-            $cookie->sameSiteStrict();
+        if (isset($data['Expires'])) {
+            empty($data['Expires']) ? $cookie->setPermanent() : $cookie->setExpires($data['Expires']);
         }
-        if (!empty($data['sameSite']) && $data['sameSite'] !== 'Strict') {
-            $cookie->sameSiteLax();
+        if (isset($data['Domain'])) { $cookie->setDomain($data['Domain']); }
+        if (isset($data['Path'])) { $cookie->setPath($data['Path']); }
+        if (isset($data['Secure'])) { $cookie->setSecure(); }
+        if (isset($data['HttpOnly'])) { $cookie->setHttpOnly(); }
+        if (isset($data['SameSite'])) {
+            $data['SameSite'] === 'Strict' ? $cookie->setSameSiteStrict() : $cookie->setSameSiteLax();
         }
 
-        $data['value'] ? $cookie->value($data['value']) : $cookie->remove();
+        $data['value'] ? $cookie->setValue($data['value']) : $cookie->revoke();
         $this->assertEquals($headerLine, (string) $cookie);
     }
 
@@ -63,7 +63,7 @@ class CookieTest extends TestCase
     {
         $name   = $data['name'];
         $cookie = $this->cookie($name, $data);
-        $data['value'] ? $cookie->value($data['value']) : $cookie->remove();
+        $data['value'] ? $cookie->setValue($data['value']) : $cookie->revoke();
         $this->assertEquals($headerLine, (string) $cookie);
     }
 
@@ -77,58 +77,52 @@ class CookieTest extends TestCase
             ['fullCookie=foo; Domain=example.com; Path=/directory/; Expires=Tuesday, 01-May-2018 01:00:00 UTC; MaxAge=3600; Secure; HttpOnly; SameSite=Lax', [
                 'name'     => 'fullCookie',
                 'value'    => 'foo',
-                'secure'   => true,
-                'expires'  => 60,
-                'httpOnly' => true,
-                'domain'   => 'example.com',
-                'path'     => '/directory/',
-                'sameSite' => true
+                'Secure'   => true,
+                'MaxAge'   => 3600,
+                'HttpOnly' => true,
+                'Domain'   => 'example.com',
+                'Path'     => '/directory/',
+                'SameSite' => true
             ]],
-            ['permanentCookie=hash-3284682736487236; Expires=Sunday, 30-Apr-2023 00:00:00 UTC; MaxAge=157680000; HttpOnly; SameSite=Strict', [
+            ['fullCookie=foo; Domain=example.com; Path=/directory/; Expires=Tuesday, 01-May-2018 01:00:00 UTC; MaxAge=3600; Secure; HttpOnly; SameSite=Lax', [
+                'name'     => 'fullCookie',
+                'value'    => 'foo',
+                'Secure'   => true,
+                'Expires'  => (new \DateTime())->setTimestamp(\Polymorphine\Session\ResponseHeaders\time() + 3600),
+                'HttpOnly' => true,
+                'Domain'   => 'example.com',
+                'Path'     => '/directory/',
+                'SameSite' => true
+            ]],
+            ['permanentCookie=hash-3284682736487236; Path=/; Expires=Sunday, 30-Apr-2023 00:00:00 UTC; MaxAge=157680000; HttpOnly; SameSite=Strict', [
                 'name'     => 'permanentCookie',
                 'value'    => 'hash-3284682736487236',
-                'expires'  => false,
-                'httpOnly' => true,
-                'path'     => '',
-                'sameSite' => 'Strict'
+                'MaxAge'   => false,
+                'HttpOnly' => true,
+                'Path'     => '',
+                'SameSite' => 'Strict'
+            ]],
+            ['permanentCookie=hash-3284682736487237; Path=/; Expires=Sunday, 30-Apr-2023 00:00:00 UTC; MaxAge=157680000; HttpOnly; SameSite=Strict', [
+                'name'     => 'permanentCookie',
+                'value'    => 'hash-3284682736487237',
+                'Expires'  => false,
+                'HttpOnly' => true,
+                'Path'     => '',
+                'SameSite' => 'Strict'
             ]]
         ];
     }
 
-    public function testPrefixedNameConstructors()
-    {
-        $this->assertSame('__Host-name=; Path=/; Secure', (string) Cookie::prefixedHost('name'));
-        $this->assertSame('__Secure-name=; Path=/; Secure', (string) Cookie::prefixedSecure('name'));
-    }
-
-    /**
-     * @dataProvider sameSiteDoubleCalls
-     *
-     * @param string $firstCall
-     * @param string $secondCall
-     */
-    public function testCookieWithSameSiteDirective_WhenSameSiteCalled_ThrowsException(string $firstCall, string $secondCall)
-    {
-        $cookie = $this->cookie('CheckLogic');
-        $cookie = ($firstCall === 'Lax') ? $cookie->sameSiteLax() : $cookie->sameSiteStrict();
-        $this->expectException(LogicException::class);
-        ($secondCall === 'Lax') ? $cookie->sameSiteLax() : $cookie->sameSiteStrict();
-    }
-
-    public function sameSiteDoubleCalls()
-    {
-        return [['Lax', 'Strict'], ['Strict', 'Lax'], ['Strict', 'Strict'], ['Lax', 'Lax']];
-    }
-
     public function testSecureAndHostNamePrefixWillSetSecureDirectiveImplicitly()
     {
-        $cookie = $this->cookie('__SECURE-name');
-        $cookie->path('/test')->domain('example.com')->value('test');
+        $cookie = $this->cookie('__SECURE-name')
+                       ->setPath('/test')
+                       ->setDomain('example.com')
+                       ->setValue('test');
         $headerLine = '__SECURE-name=test; Domain=example.com; Path=/test; Secure';
         $this->assertEquals($headerLine, (string) $cookie);
 
-        $cookie = $this->cookie('__host-name');
-        $cookie->value('test');
+        $cookie     = $this->cookie('__host-name')->setValue('test');
         $headerLine = '__host-name=test; Path=/; Secure';
         $this->assertEquals($headerLine, (string) $cookie);
     }
@@ -137,18 +131,18 @@ class CookieTest extends TestCase
     {
         $cookie = $this->cookie('__Host-name');
         $this->expectException(LogicException::class);
-        $cookie->path('/test');
+        $cookie->setPath('/test');
     }
 
     public function testSettingDomainForHostNamePrefixedCookie_ThrowsException()
     {
         $cookie = $this->cookie('__Host-name');
         $this->expectException(LogicException::class);
-        $cookie->domain('example.com');
+        $cookie->setDomain('example.com');
     }
 
     private function cookie(string $name, array $attributes = [])
     {
-        return $attributes ? Cookie::fromArray($name, $attributes) : new Cookie($name);
+        return new Cookie($name, $attributes);
     }
 }

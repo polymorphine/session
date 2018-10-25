@@ -12,7 +12,7 @@
 namespace Polymorphine\Session\SessionContext;
 
 use Polymorphine\Session\SessionContext;
-use Polymorphine\Session\ResponseHeaders;
+use Polymorphine\Session\ResponseHeaders\Cookie;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -100,15 +100,15 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
 
     protected function setSessionCookie(): void
     {
-        $attributes = $this->cookieOptions + ['httpOnly' => true, 'sameSite' => 'Lax'];
-        $this->cookie = ResponseHeaders\Cookie::fromArray($this->sessionName, $attributes)->value(session_id());
+        $cookie = new Cookie($this->sessionName, $this->cookieOptions + ['HttpOnly' => true, 'SameSite' => 'Lax']);
+        $this->cookie = $cookie->setValue(session_id());
     }
 
     private function destroy(): void
     {
         if (!$this->sessionStarted) { return; }
 
-        $this->cookie = (new ResponseHeaders\Cookie($this->sessionName))->remove();
+        $this->cookie = (new Cookie($this->sessionName))->revoke();
         session_destroy();
     }
 }
