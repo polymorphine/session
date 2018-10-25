@@ -22,32 +22,35 @@ use RuntimeException;
 
 class NativeSessionContext implements MiddlewareInterface, SessionContext
 {
-    private $cookie;
-    private $cookieOptions;
-
     /** @var SessionData */
     private $sessionData;
-
-    private $sessionName;
+    private $cookie;
+    private $cookieHeader;
     private $sessionStarted = false;
 
-    public function __construct(array $cookieOptions = [])
+    public function __construct(Cookie $cookie)
     {
-        $this->cookieOptions = $cookieOptions;
+        $this->cookie = $cookie->withName(session_name());
+    }
+
+    public static function withCookie(array $cookieOptions = [])
+    {
+        return new self(new Cookie(session_name(), $cookieOptions + ['HttpOnly' => true, 'SameSite' => 'Lax']));
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $cookies = $request->getCookieParams();
 
-        $this->sessionName = session_name();
-        if (isset($cookies[$this->sessionName])) { $this->start(); }
+        if (isset($cookies[$this->cookie->name()])) { $this->start(); }
         $this->createStorage($_SESSION ?? []);
 
         $response = $handler->handle($request);
         $this->data()->commit();
 
-        return $this->cookie ? $response->withAddedHeader('Set-Cookie', (string) $this->cookie) : $response;
+        return $this->cookieHeader
+            ? $response->withAddedHeader('Set-Cookie', $this->cookieHeader)
+            : $response;
     }
 
     public function data(): SessionData
@@ -100,15 +103,14 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
 
     protected function setSessionCookie(): void
     {
-        $cookie = new Cookie($this->sessionName, $this->cookieOptions + ['HttpOnly' => true, 'SameSite' => 'Lax']);
-        $this->cookie = $cookie->setValue(session_id());
+        $this->cookieHeader = $this->cookie->valueHeader(session_id());
     }
 
     private function destroy(): void
     {
         if (!$this->sessionStarted) { return; }
 
-        $this->cookie = (new Cookie($this->sessionName))->revoke();
+        $this->cookieHeader = $this->cookie->revokeHeader();
         session_destroy();
     }
 }

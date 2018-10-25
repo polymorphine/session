@@ -13,7 +13,7 @@ namespace Polymorphine\Session\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\ResponseHeaders\Cookie;
-use LogicException;
+use DateTime;
 
 require_once __DIR__ . '/Fixtures/time-functions.php';
 
@@ -23,48 +23,96 @@ class CookieTest extends TestCase
     public function testInstantiation()
     {
         $this->assertInstanceOf(Cookie::class, $this->cookie('new'));
+        $this->assertInstanceOf(Cookie::class, Cookie::session('new'));
+        $this->assertInstanceOf(Cookie::class, Cookie::permanent('new'));
     }
 
-    /**
-     * @dataProvider cookieData
-     *
-     * @param string $headerLine
-     * @param array  $data
-     */
-    public function testSetupMethods(string $headerLine, array $data)
+    public function testPermanentConstructor()
     {
-        $cookie = $this->cookie($data['name']);
+        $expectedHeader = 'name=value; Path=/; Expires=Sunday, 30-Apr-2023 00:00:00 UTC; MaxAge=157680000';
+        $standardHeader = 'name=value; Path=/; Expires=Tuesday, 01-May-2018 02:00:00 UTC; MaxAge=7200';
 
-        if (isset($data['MaxAge'])) {
-            empty($data['MaxAge']) ? $cookie->setPermanent() : $cookie->setMaxAge($data['MaxAge']);
-        }
-        if (isset($data['Expires'])) {
-            empty($data['Expires']) ? $cookie->setPermanent() : $cookie->setExpires($data['Expires']);
-        }
-        if (isset($data['Domain'])) { $cookie->setDomain($data['Domain']); }
-        if (isset($data['Path'])) { $cookie->setPath($data['Path']); }
-        if (isset($data['Secure'])) { $cookie->setSecure(); }
-        if (isset($data['HttpOnly'])) { $cookie->setHttpOnly(); }
-        if (isset($data['SameSite'])) {
-            $data['SameSite'] === 'Strict' ? $cookie->setSameSiteStrict() : $cookie->setSameSiteLax();
-        }
+        $directive = ['Expires' => $this->fixedDate(7200)];
 
-        $data['value'] ? $cookie->setValue($data['value']) : $cookie->revoke();
-        $this->assertEquals($headerLine, (string) $cookie);
+        $this->assertSame($expectedHeader, Cookie::permanent('name', $directive)->valueHeader('value'));
+        $this->assertSame($standardHeader, $this->cookie('name', $directive)->valueHeader('value'));
+    }
+
+    public function testSessionConstructor()
+    {
+        $expectedHeader = 'SessionId=1234567890; Path=/; HttpOnly; SameSite=Lax';
+        $cookie         = Cookie::session('SessionId');
+        $this->assertSame($expectedHeader, $cookie->valueHeader('1234567890'));
     }
 
     /**
      * @dataProvider cookieData
      *
-     * @param string $headerLine
+     * @param string $expectedHeader
      * @param array  $data
      */
-    public function testArrayConstructors(string $headerLine, array $data)
+    public function testConstructorDirectivesSetting(string $expectedHeader, array $data)
     {
         $name   = $data['name'];
         $cookie = $this->cookie($name, $data);
-        $data['value'] ? $cookie->setValue($data['value']) : $cookie->revoke();
-        $this->assertEquals($headerLine, (string) $cookie);
+        $header = $data['value'] ? $cookie->valueHeader($data['value']) : $cookie->revokeHeader();
+        $this->assertEquals($expectedHeader, $header);
+    }
+
+    public function testNamePropertyAccessor()
+    {
+        $this->assertSame('nameOfTheCookie', $this->cookie('nameOfTheCookie')->name());
+    }
+
+    /**
+     * @dataProvider cookieData
+     *
+     * @param string $expectedHeader
+     * @param array  $data
+     */
+    public function testNameChange(string $expectedHeader, array $data)
+    {
+        $name      = $data['name'];
+        $oldCookie = $this->cookie($name, $data);
+        $newCookie = $oldCookie->withName('new-' . $name);
+
+        $this->assertNotSame($oldCookie, $newCookie);
+
+        $header = $data['value'] ? $newCookie->valueHeader($data['value']) : $newCookie->revokeHeader();
+        $this->assertEquals('new-' . $expectedHeader, $header);
+    }
+
+    public function testGivenSameName_WithNameMethod_ReturnsSameInstance()
+    {
+        $oldCookie = $this->cookie('name');
+        $newCookie = $oldCookie->withName('name');
+
+        $this->assertSame($oldCookie, $newCookie);
+    }
+
+    public function testGivenBothExpiryDirectives_MaxAgeTakesPrecedence()
+    {
+        $expectedHeader = 'name=value; Path=/; Expires=Tuesday, 01-May-2018 00:01:40 UTC; MaxAge=100';
+        $directives     = ['MaxAge' => 100, 'Expires' => $this->fixedDate(3600)];
+        $this->assertSame($expectedHeader, $this->cookie('name', $directives)->valueHeader('value'));
+    }
+
+    public function testSecureAndHostNamePrefixWillForceSecureDirective()
+    {
+        $header   = $this->cookie('__SECURE-name', ['Domain' => 'example.com', 'Path' => '/test'])->valueHeader('test');
+        $expected = '__SECURE-name=test; Domain=example.com; Path=/test; Secure';
+        $this->assertEquals($expected, $header);
+
+        $header   = $this->cookie('__host-name')->valueHeader('test');
+        $expected = '__host-name=test; Path=/; Secure';
+        $this->assertEquals($expected, $header);
+    }
+
+    public function testHostNamePrefixWillForceRootPathAndDomain()
+    {
+        $header   = $this->cookie('__Host-name', ['Domain' => 'example.com', 'Path' => '/test'])->valueHeader('test');
+        $expected = '__Host-name=test; Path=/; Secure';
+        $this->assertEquals($expected, $header);
     }
 
     public function cookieData()
@@ -88,57 +136,18 @@ class CookieTest extends TestCase
                 'name'     => 'fullCookie',
                 'value'    => 'foo',
                 'Secure'   => true,
-                'Expires'  => (new \DateTime())->setTimestamp(\Polymorphine\Session\ResponseHeaders\time() + 3600),
+                'Expires'  => $this->fixedDate(3600),
                 'HttpOnly' => true,
                 'Domain'   => 'example.com',
                 'Path'     => '/directory/',
                 'SameSite' => true
-            ]],
-            ['permanentCookie=hash-3284682736487236; Path=/; Expires=Sunday, 30-Apr-2023 00:00:00 UTC; MaxAge=157680000; HttpOnly; SameSite=Strict', [
-                'name'     => 'permanentCookie',
-                'value'    => 'hash-3284682736487236',
-                'MaxAge'   => false,
-                'HttpOnly' => true,
-                'Path'     => '',
-                'SameSite' => 'Strict'
-            ]],
-            ['permanentCookie=hash-3284682736487237; Path=/; Expires=Sunday, 30-Apr-2023 00:00:00 UTC; MaxAge=157680000; HttpOnly; SameSite=Strict', [
-                'name'     => 'permanentCookie',
-                'value'    => 'hash-3284682736487237',
-                'Expires'  => false,
-                'HttpOnly' => true,
-                'Path'     => '',
-                'SameSite' => 'Strict'
             ]]
         ];
     }
 
-    public function testSecureAndHostNamePrefixWillSetSecureDirectiveImplicitly()
+    private function fixedDate(int $secondsFromNow = 0): DateTime
     {
-        $cookie = $this->cookie('__SECURE-name')
-                       ->setPath('/test')
-                       ->setDomain('example.com')
-                       ->setValue('test');
-        $headerLine = '__SECURE-name=test; Domain=example.com; Path=/test; Secure';
-        $this->assertEquals($headerLine, (string) $cookie);
-
-        $cookie     = $this->cookie('__host-name')->setValue('test');
-        $headerLine = '__host-name=test; Path=/; Secure';
-        $this->assertEquals($headerLine, (string) $cookie);
-    }
-
-    public function testSettingPathForHostNamePrefixedCookie_ThrowsException()
-    {
-        $cookie = $this->cookie('__Host-name');
-        $this->expectException(LogicException::class);
-        $cookie->setPath('/test');
-    }
-
-    public function testSettingDomainForHostNamePrefixedCookie_ThrowsException()
-    {
-        $cookie = $this->cookie('__Host-name');
-        $this->expectException(LogicException::class);
-        $cookie->setDomain('example.com');
+        return (new DateTime())->setTimestamp(\Polymorphine\Session\ResponseHeaders\time() + $secondsFromNow);
     }
 
     private function cookie(string $name, array $attributes = [])

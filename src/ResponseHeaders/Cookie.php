@@ -11,16 +11,15 @@
 
 namespace Polymorphine\Session\ResponseHeaders;
 
-use LogicException;
 use DateTime;
 
 
 class Cookie
 {
-    private const MAX_TIME = 5 * 365 * 24 * 60 * 60;
+    /** @var int Five years time equivalent in seconds */
+    private const MAX_TIME = 157680000;
 
     private $name;
-    private $value;
 
     /** @var DateTime */
     private $expires;
@@ -35,18 +34,16 @@ class Cookie
         'SameSite' => false
     ];
 
-    private $hostLock = false;
-
     /**
      * Creates cookie with given name and directives.
      *
-     * Cookie directives can be set with $directives array keys
-     * corresponding to self::$directives property definition and
-     * setup method names.
+     * Cookie directives can be set with $directives array where
+     * keys are corresponding to self::$directives properties and
+     * setup methods (see: protected setter methods for more info)
      *
      * Prefixed name will force following settings:
-     * __Secure- force: secure
-     * __Host-   force & lock: secure, domain (current) & path (root)
+     * __Secure- force: Secure
+     * __Host-   force: Secure, Domain (current) & Path (root)
      *
      * @param $name
      * @param array $directives
@@ -54,174 +51,200 @@ class Cookie
     public function __construct($name, $directives = [])
     {
         $this->name = $name;
-        $this->setDirectives($directives);
+
+        foreach (array_keys($this->directives) as $name) {
+            if (!$value = $directives[$name] ?? null) { continue; }
+            $setMethod = 'set' . $name;
+            $this->{$setMethod}($value);
+        }
     }
 
-    public function __toString()
+    /**
+     * Creates cookie that should be sent back util explicitly revoked.
+     * In detail this cookie is created with very long expiration
+     * time (5 years) which makes it practically permanent.
+     *
+     * Beside overriding expiry directives parameters are handled the same
+     * as in default constructor.
+     *
+     * @param $name
+     * @param array $directives
+     *
+     * @return Cookie
+     */
+    public static function permanent($name, $directives = []): self
     {
-        $header = $this->name . '=' . $this->value;
+        return new self($name, ['Expires' => null, 'MaxAge' => self::MAX_TIME] + $directives);
+    }
+
+    /**
+     * Creates cookie with directives that if omitted will default
+     * to those usually applied by sessions (HttpOnly, SameSite Lax).
+     *
+     * Beside fallback option this (named constructor) method parameters
+     * are handled the same as in default constructor.
+     *
+     * @param $name
+     * @param array $directives
+     *
+     * @return Cookie
+     */
+    public static function session($name, $directives = []): self
+    {
+        return new self($name, $directives + ['HttpOnly' => true, 'SameSite' => 'Lax']);
+    }
+
+    public function name(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Creates new Cookie instance with its directives and name
+     * given as parameter.
+     *
+     * NOTE: Cookie name determines its entity. It means that if
+     * instance name is the same as given parameter same object
+     * will be returned.
+     *
+     * @param string $name
+     *
+     * @return Cookie
+     */
+    public function withName(string $name): self
+    {
+        if ($name === $this->name) { return $this; }
+
+        $clone = clone $this;
+        $clone->name = $name;
+
+        return $clone;
+    }
+
+    /**
+     * Header line that requests this cookie to be sent with given value.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    public function valueHeader(string $value): string
+    {
+        return $this->header($value);
+    }
+
+    /**
+     * Header line that requests this cookie to be removed.
+     *
+     * @return string
+     */
+    public function revokeHeader(): string
+    {
+        $this->setMaxAge(-self::MAX_TIME);
+        return $this->header('');
+    }
+
+    /**
+     * Constructor directive setter:
+     * This cookie should be removed after given date.
+     *
+     * NOTE: If both Expires and MaxAge directives are provided
+     * MaxAge values are set.
+     *
+     * @param DateTime $expires
+     */
+    protected function setExpires(DateTime $expires): void
+    {
+        $this->expires = $expires;
+    }
+
+    /**
+     * Constructor directive setter:
+     * This cookie should be removed after given number of seconds.
+     *
+     * NOTE: This directive takes precedence over Expires directive
+     * if both are provided.
+     *
+     * @param int $seconds
+     */
+    protected function setMaxAge(int $seconds): void
+    {
+        $this->expires = (new DateTime())->setTimestamp(time() + $seconds);
+    }
+
+    /**
+     * Constructor directive setter:
+     * This cookie should be sent only with requests to given domain.
+     *
+     * @param string $domain
+     */
+    protected function setDomain(string $domain): void
+    {
+        $this->directives['Domain'] = $domain;
+    }
+
+    /**
+     * Constructor directive setter:
+     * This cookie should be sent only with requests to given path
+     * or its subdirectories.
+     *
+     * @param string $path
+     */
+    protected function setPath(string $path): void
+    {
+        $this->directives['Path'] = $path;
+    }
+
+    /**
+     * Constructor directive setter:
+     * This cookie shouldn't be read or modified by client-side scripts
+     * and only sent back with next http request.
+     */
+    protected function setHttpOnly(): void
+    {
+        $this->directives['HttpOnly'] = true;
+    }
+
+    /**
+     * Constructor directive setter:
+     * This cookie should not be sent with unencrypted (http) protocol.
+     */
+    protected function setSecure(): void
+    {
+        $this->directives['Secure'] = true;
+    }
+
+    /**
+     * Constructor directive setter:
+     * With either 'Strict' or 'Lax' value this cookie should be sent
+     * only when request was initiated on cookie's domain.
+     * Additionally 'Lax' allows this cookie to be sent when external
+     * link was used (all GET method requests).
+     *
+     * @param string $value Strict|Lax
+     */
+    protected function setSameSite(string $value): void
+    {
+        $this->directives['SameSite'] = ($value === 'Strict') ? 'Strict' : 'Lax';
+    }
+
+    private function header(string $value): string
+    {
+        $this->setPrefixedNameDirectives();
+
+        $header = $this->name . '=' . $value;
 
         if ($this->expires) {
             $this->directives['Expires'] = $this->expires->format(DateTime::COOKIE);
             $this->directives['MaxAge']  = $this->expires->getTimestamp() - time();
         }
 
-        foreach ($this->directives as $name => $directive) {
-            if (!$directive) { continue; }
-            $header .= '; ' . $name . ($directive === true ? '' : '=' . $directive);
+        foreach ($this->directives as $directive => $value) {
+            if (!$value) { continue; }
+            $header .= '; ' . $directive . ($value === true ? '' : '=' . $value);
         }
 
         return $header;
-    }
-
-    public function setValue(string $value): self
-    {
-        $this->value = $value;
-        return $this;
-    }
-
-    public function revoke(): self
-    {
-        $this->setMaxAge(-self::MAX_TIME);
-        $this->value = '';
-        return $this;
-    }
-
-    /**
-     * Browser should remove this cookie after given date.
-     *
-     * @param DateTime $expires
-     *
-     * @return static
-     */
-    public function setExpires(DateTime $expires): self
-    {
-        $this->expires = $expires;
-        return $this;
-    }
-
-    /**
-     * Browser should remove this cookie after given number of seconds.
-     *
-     * @param int $seconds
-     *
-     * @return static
-     */
-    public function setMaxAge(int $seconds): self
-    {
-        $this->expires = (new DateTime())->setTimestamp(time() + $seconds);
-        return $this;
-    }
-
-    /**
-     * Browser should keep this cookie until explicitly deleted.
-     *
-     * @return static
-     */
-    public function setPermanent(): self
-    {
-        $this->setMaxAge(self::MAX_TIME);
-        return $this;
-    }
-
-    /**
-     * Browser should send this cookie only with requests to given domain.
-     *
-     * @param string $domain
-     *
-     * @return static
-     */
-    public function setDomain(string $domain): self
-    {
-        if ($this->hostLock) {
-            throw new LogicException('Cannot set path in cookies with `__Host-` name prefix');
-        }
-
-        $this->directives['Domain'] = $domain;
-        return $this;
-    }
-
-    /**
-     * Browser should send this cookie only with requests to given path
-     * or its subdirectories.
-     *
-     * @param string $path
-     *
-     * @return static
-     */
-    public function setPath(string $path): self
-    {
-        if ($this->hostLock) {
-            throw new LogicException('Cannot set path in cookies with `__Host-` name prefix');
-        }
-
-        $this->directives['Path'] = $path ?: '/';
-        return $this;
-    }
-
-    /**
-     * Browser should not allow scripts to read this cookie.
-     *
-     * @return static
-     */
-    public function setHttpOnly(): self
-    {
-        $this->directives['HttpOnly'] = true;
-        return $this;
-    }
-
-    /**
-     * Browser should not send this cookie unencrypted (http protocol).
-     *
-     * @return static
-     */
-    public function setSecure(): self
-    {
-        $this->directives['Secure'] = true;
-        return $this;
-    }
-
-    /**
-     * Browser should send this cookie only when request was initiated
-     * on cookie's domain.
-     *
-     * @return static
-     */
-    public function setSameSiteStrict(): self
-    {
-        $this->directives['SameSite'] = 'Strict';
-        return $this;
-    }
-
-    /**
-     * Browser should send this cookie only when request was initiated
-     * on cookie's domain or by using url link (GET method).
-     *
-     * @return static
-     */
-    public function setSameSiteLax(): self
-    {
-        $this->directives['SameSite'] = 'Lax';
-        return $this;
-    }
-
-    private function setDirectives(array $directives): void
-    {
-        $this->setPrefixedNameDirectives();
-
-        isset($directives['Domain']) and $this->setDomain($directives['Domain']);
-        isset($directives['Path']) and $this->setPath($directives['Path']);
-        isset($directives['Expires']) and $directives['Expires']
-            ? $this->setExpires($directives['Expires'])
-            : $this->setPermanent();
-        isset($directives['MaxAge']) and $directives['MaxAge']
-            ? $this->setMaxAge($directives['MaxAge'])
-            : $this->setPermanent();
-        !empty($directives['HttpOnly']) and $this->setHttpOnly();
-        !empty($directives['Secure']) and $this->setSecure();
-        isset($directives['SameSite']) and $directives['SameSite'] === 'Strict'
-            ? $this->setSameSiteStrict()
-            : $this->setSameSiteLax();
     }
 
     private function setPrefixedNameDirectives(): void
@@ -232,6 +255,10 @@ class Cookie
         $host   = !$secure && (stripos($this->name, '__Host-') === 0);
 
         $this->directives['Secure'] = $secure || $host;
-        $this->hostLock = $host;
+
+        if ($host) {
+            $this->directives['Domain'] = null;
+            $this->directives['Path']   = '/';
+        }
     }
 }

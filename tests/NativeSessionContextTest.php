@@ -97,7 +97,7 @@ class NativeSessionContextTest extends TestCase
         $response = $context->process($this->request(true), $handler);
         $this->assertSame([], SessionGlobalState::$data);
 
-        $header = [SessionGlobalState::$name . '=; Path=/; Expires=Thursday, 02-May-2013 00:00:00 UTC; MaxAge=-157680000'];
+        $header = [SessionGlobalState::$name . '=; Path=/; Expires=Thursday, 02-May-2013 00:00:00 UTC; MaxAge=-157680000; HttpOnly; SameSite=Lax'];
         $this->assertSame($header, $this->cookie($response));
     }
 
@@ -139,8 +139,8 @@ class NativeSessionContextTest extends TestCase
         return $response->getHeader('Set-Cookie');
     }
 
-    private function context($cookieOptions = [])
+    private function context(array $cookieOptions = [])
     {
-        return new SessionContext\NativeSessionContext($cookieOptions);
+        return SessionContext\NativeSessionContext::withCookie($cookieOptions);
     }
 }
