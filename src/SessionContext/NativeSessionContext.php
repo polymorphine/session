@@ -33,9 +33,9 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
         $this->cookie = $cookie->withName(session_name());
     }
 
-    public static function withCookie(array $cookieOptions = [])
+    public static function fromCookieOptions(array $cookieOptions = [])
     {
-        return new self(new Cookie(session_name(), $cookieOptions + ['HttpOnly' => true, 'SameSite' => 'Lax']));
+        return new self(Cookie::session(session_name(), $cookieOptions + ['HttpOnly' => true, 'SameSite' => 'Lax']));
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

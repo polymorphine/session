@@ -141,6 +141,6 @@ class NativeSessionContextTest extends TestCase
 
     private function context(array $cookieOptions = [])
     {
-        return SessionContext\NativeSessionContext::withCookie($cookieOptions);
+        return SessionContext\NativeSessionContext::fromCookieOptions($cookieOptions);
     }
 }
