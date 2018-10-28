@@ -5,6 +5,7 @@
     "minimum-stability": "stable",
     "require": {
         "php": "^7.1",
+        "polymorphine/cookie": "@dev",
         "psr/http-message": "^1.0",
         "psr/http-server-handler": "^1.0",
         "psr/http-server-middleware": "^1.0"

@@ -12,7 +12,7 @@
 namespace Polymorphine\Session\SessionContext;
 
 use Polymorphine\Session\SessionContext;
-use Polymorphine\Session\ResponseHeaders\Cookie;
+use Polymorphine\Cookie\Cookie;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
