@@ -4,3 +4,7 @@
 [![PHP from Packagist](https://img.shields.io/packagist/php-v/polymorphine/session/dev-develop.svg)](https://packagist.org/packages/polymorphine/session)
 [![Packagist](https://img.shields.io/packagist/l/polymorphine/session.svg)](https://packagist.org/packages/polymorphine/session)
 ### HTTP Request session context service handled by PSR-15 middleware
+
+### Installation with [Composer](https://getcomposer.org/)
+    php composer.phar require polymorphine/session
+
