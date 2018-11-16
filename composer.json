@@ -2,10 +2,11 @@
     "name": "polymorphine/session",
     "description": "HTTP Request session context service handled by PSR-15 middleware",
     "type": "library",
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "php": "^7.1",
-        "polymorphine/cookie": "@dev",
+        "polymorphine/headers": "@dev",
         "psr/http-message": "^1.0",
         "psr/http-server-handler": "^1.0",
         "psr/http-server-middleware": "^1.0"

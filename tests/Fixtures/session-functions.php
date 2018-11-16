@@ -20,7 +20,7 @@ function session_start()
     $_SESSION = SessionGlobalState::$data;
 
     SessionGlobalState::$status = PHP_SESSION_ACTIVE;
-    SessionGlobalState::$id     = 'DEFAULT_SESSION_ID';
+    SessionGlobalState::$id     = 'DefaultSessionId';
 }
 
 function session_status()
@@ -62,5 +62,5 @@ function session_destroy()
 
 function session_regenerate_id()
 {
-    SessionGlobalState::$id = 'REGENERATED_SESSION_ID';
+    SessionGlobalState::$id = 'RegeneratedSessionId';
 }

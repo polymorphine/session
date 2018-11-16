@@ -12,7 +12,7 @@
 namespace Polymorphine\Session\SessionContext;
 
 use Polymorphine\Session\SessionContext;
-use Polymorphine\Cookie\Cookie;
+use Polymorphine\Headers\Cookie;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,7 +25,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
     /** @var SessionData */
     private $sessionData;
     private $cookie;
-    private $cookieHeader;
+
     private $sessionStarted = false;
 
     public function __construct(Cookie $cookie)
@@ -33,24 +33,17 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
         $this->cookie = $cookie->withName(session_name());
     }
 
-    public static function fromCookieOptions(array $cookieOptions = [])
-    {
-        return new self(Cookie::session(session_name(), $cookieOptions + ['HttpOnly' => true, 'SameSite' => 'Lax']));
-    }
-
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $cookies = $request->getCookieParams();
 
-        if (isset($cookies[$this->cookie->name()])) { $this->start(); }
+        if (isset($cookies[session_name()])) { $this->start(); }
         $this->createStorage($_SESSION ?? []);
 
         $response = $handler->handle($request);
         $this->data()->commit();
 
-        return $this->cookieHeader
-            ? $response->withAddedHeader('Set-Cookie', $this->cookieHeader)
-            : $response;
+        return $response;
     }
 
     public function data(): SessionData
@@ -75,7 +68,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
     {
         if (!$this->sessionStarted) { return; }
         session_regenerate_id(true);
-        $this->setSessionCookie();
+        $this->cookie->send(session_id());
     }
 
     public function commit(array $data): void
@@ -87,7 +80,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
 
         if (!$this->sessionStarted) {
             $this->start();
-            $this->setSessionCookie();
+            $this->cookie->send(session_id());
         }
 
         if ($_SESSION === $data) { return; }
@@ -101,16 +94,11 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
         $this->sessionData = new SessionData($this, $data);
     }
 
-    protected function setSessionCookie(): void
-    {
-        $this->cookieHeader = $this->cookie->valueHeader(session_id());
-    }
-
     private function destroy(): void
     {
         if (!$this->sessionStarted) { return; }
 
-        $this->cookieHeader = $this->cookie->revokeHeader();
+        $this->cookie->revoke();
         session_destroy();
     }
 }
