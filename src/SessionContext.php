@@ -16,8 +16,6 @@ use Polymorphine\Session\SessionContext\SessionData;
 
 interface SessionContext
 {
-    public function start(): void;
-
     public function data(): SessionData;
 
     public function resetContext(): void;

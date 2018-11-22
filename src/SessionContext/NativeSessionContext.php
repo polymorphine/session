@@ -54,16 +54,6 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
         return $this->sessionData;
     }
 
-    public function start(): void
-    {
-        if (session_status() !== PHP_SESSION_NONE) {
-            throw new RuntimeException('Session started in another context');
-        }
-
-        session_start();
-        $this->sessionStarted = true;
-    }
-
     public function resetContext(): void
     {
         if (!$this->sessionStarted) { return; }
@@ -92,6 +82,16 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
     protected function createStorage(array $data = []): void
     {
         $this->sessionData = new SessionData($this, $data);
+    }
+
+    private function start(): void
+    {
+        if (session_status() !== PHP_SESSION_NONE) {
+            throw new RuntimeException('Session started in another context');
+        }
+
+        session_start();
+        $this->sessionStarted = true;
     }
 
     private function destroy(): void
