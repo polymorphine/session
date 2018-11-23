@@ -38,10 +38,11 @@ class NativeSessionContextTest extends TestCase
         $this->assertInstanceOf(SessionContext::class, $context);
     }
 
-    public function testCookieNameIsSetToSessionName()
+    public function testSessionNameIsSynchronizedWithCookieName()
     {
-        $this->context($cookie);
-        $this->assertSame(SessionGlobalState::$name, $cookie->name);
+        $cookie = new MockedCookie('MySESSION');
+        $this->context($cookie)->process($this->request(), $this->handler());
+        $this->assertSame('MySESSION', SessionGlobalState::$name);
     }
 
     public function testSessionInitialization()
@@ -134,7 +135,7 @@ class NativeSessionContextTest extends TestCase
 
     private function context(&$cookie = null)
     {
-        $cookie = new MockedCookie();
+        $cookie = $cookie ?: new MockedCookie(SessionGlobalState::$name);
         return new SessionContext\NativeSessionContext($cookie);
     }
 }

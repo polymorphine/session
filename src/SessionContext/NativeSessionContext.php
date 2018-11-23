@@ -30,14 +30,12 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
 
     public function __construct(Cookie $cookie)
     {
-        $this->cookie = $cookie->withName(session_name());
+        $this->cookie = $cookie;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $cookies = $request->getCookieParams();
-
-        if (isset($cookies[session_name()])) { $this->start(); }
+        if ($this->containsSessionCookie($request)) { $this->start(); }
         $this->createStorage($_SESSION ?? []);
 
         $response = $handler->handle($request);
@@ -100,5 +98,14 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
 
         $this->cookie->revoke();
         session_destroy();
+    }
+
+    private function containsSessionCookie(ServerRequestInterface $request): bool
+    {
+        $sessionName = $this->cookie->name();
+        if (session_name() !== $sessionName) { session_name($sessionName); }
+
+        $cookies = $request->getCookieParams();
+        return isset($cookies[$sessionName]);
     }
 }

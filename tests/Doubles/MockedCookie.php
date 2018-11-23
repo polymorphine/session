@@ -22,10 +22,14 @@ class MockedCookie implements Cookie
     public $value;
     public $deleted = false;
 
-    public function withName(string $name): Cookie
+    public function __construct(string $name)
     {
-        $this->name = $this->valid($name);
-        return $this;
+        $this->name = $name;
+    }
+
+    public function name(): string
+    {
+        return $this->name;
     }
 
     public function send(string $value): void
