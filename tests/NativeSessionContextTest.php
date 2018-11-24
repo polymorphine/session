@@ -14,7 +14,6 @@ namespace Polymorphine\Session\Tests;
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionContext;
 use Polymorphine\Session\Tests\Doubles\FakeRequestHandler;
-use Polymorphine\Session\Tests\Doubles\DummyResponse;
 use Polymorphine\Session\Tests\Doubles\FakeServerRequest;
 use Polymorphine\Session\Tests\Doubles\MockedCookie;
 use Polymorphine\Session\Tests\Fixtures\SessionGlobalState;
@@ -78,7 +77,7 @@ class NativeSessionContextTest extends TestCase
 
         $context = $this->context($cookie);
         $handler = $this->handler(function () use ($context) {
-            $context->resetContext();
+            $context->reset();
         });
 
         $context->process($this->request(true), $handler);

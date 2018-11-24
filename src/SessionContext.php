@@ -18,7 +18,7 @@ interface SessionContext
 {
     public function data(): SessionData;
 
-    public function resetContext(): void;
+    public function reset(): void;
 
     public function commit(array $data): void;
 }

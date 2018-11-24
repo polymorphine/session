@@ -36,7 +36,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if ($this->containsSessionCookie($request)) { $this->start(); }
-        $this->createStorage($_SESSION ?? []);
+        $this->sessionData = new SessionData($this, $_SESSION ?? []);
 
         $response = $handler->handle($request);
         $this->data()->commit();
@@ -52,7 +52,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
         return $this->sessionData;
     }
 
-    public function resetContext(): void
+    public function reset(): void
     {
         if (!$this->sessionStarted) { return; }
         session_regenerate_id(true);
@@ -75,11 +75,6 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
 
         $_SESSION = $data;
         session_write_close();
-    }
-
-    protected function createStorage(array $data = []): void
-    {
-        $this->sessionData = new SessionData($this, $data);
     }
 
     private function start(): void
