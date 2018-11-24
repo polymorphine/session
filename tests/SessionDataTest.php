@@ -13,7 +13,7 @@ namespace Polymorphine\Session\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionContext\SessionData;
-use Polymorphine\Session\Tests\Doubles\FakeSessionContext;
+use Polymorphine\Session\Tests\Doubles\MockedSessionContext;
 
 
 class SessionDataTest extends TestCase
@@ -54,10 +54,10 @@ class SessionDataTest extends TestCase
 
     public function testClearData()
     {
-        $storage = new SessionData($manager = new FakeSessionContext(), ['foo' => 'bar', 'baz' => true]);
+        $storage = $this->storage(['foo' => 'bar', 'baz' => true], $manager);
         $storage->clear();
         $storage->commit();
-        $this->assertSame([], $manager->data);
+        $this->assertSame([], $manager->writtenData);
     }
 
     public function testDefaultForMissingValues()
@@ -66,34 +66,35 @@ class SessionDataTest extends TestCase
         $this->assertSame('default', $storage->get('foo', 'default'));
     }
 
+    public function testResetContextIsCalledOnSessionContext()
+    {
+        $this->storage([], $manager)->resetContext();
+        $this->assertTrue($manager->resetCalled);
+    }
+
     public function testCommitSession()
     {
-        $data = [
-            'foo' => 'bar',
-            'bar' => 'baz'
-        ];
+        $data    = ['foo' => 'bar', 'bar' => 'baz'];
+        $storage = $this->storage($data, $manager);
 
-        $storage = new SessionData($manager = new FakeSessionContext(), $data);
-
-        $data['fizz'] = 'buzz';
         $storage->set('fizz', 'buzz');
-
         $storage->commit();
-        $this->assertSame($data, $manager->data);
+        $this->assertSame($data + ['fizz' => 'buzz'], $manager->writtenData);
     }
 
     public function testSettingNullDoesNotRemoveData()
     {
-        $storage = new SessionData($manager = new FakeSessionContext(), ['foo' => 500]);
+        $storage = $this->storage(['foo' => 500], $manager);
         $this->assertTrue($storage->has('foo'));
         $storage->set('foo', null);
         $this->assertTrue($storage->has('foo'));
         $storage->commit();
-        $this->assertTrue(array_key_exists('foo', $manager->data));
+        $this->assertTrue(array_key_exists('foo', $manager->writtenData));
     }
 
-    private function storage(array $data = [], $manager = null): SessionData
+    private function storage(array $data = [], &$manager = null): SessionData
     {
-        return new SessionData($manager ?? new FakeSessionContext(), $data);
+        $manager = $manager ?: new MockedSessionContext();
+        return new SessionData($manager, $data);
     }
 }

@@ -15,9 +15,10 @@ use Polymorphine\Session\SessionContext\SessionData;
 use Polymorphine\Session\SessionContext;
 
 
-class FakeSessionContext implements SessionContext
+class MockedSessionContext implements SessionContext
 {
-    public $data;
+    public $writtenData;
+    public $resetCalled = false;
 
     public function start(): void
     {
@@ -27,12 +28,13 @@ class FakeSessionContext implements SessionContext
     {
     }
 
-    public function resetContext(): void
+    public function reset(): void
     {
+        $this->resetCalled = true;
     }
 
     public function commit(array $data): void
     {
-        $this->data = $data;
+        $this->writtenData = $data;
     }
 }

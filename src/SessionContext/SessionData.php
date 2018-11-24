@@ -16,12 +16,12 @@ use Polymorphine\Session\SessionContext;
 
 class SessionData
 {
-    private $manager;
+    private $context;
     private $data;
 
-    public function __construct(SessionContext $manager, array $data = [])
+    public function __construct(SessionContext $context, array $data = [])
     {
-        $this->manager = $manager;
+        $this->context = $context;
         $this->data    = $data;
     }
 
@@ -50,8 +50,13 @@ class SessionData
         $this->data = [];
     }
 
+    public function resetContext()
+    {
+        $this->context->reset();
+    }
+
     public function commit(): void
     {
-        $this->manager->commit($this->data);
+        $this->context->commit($this->data);
     }
 }
