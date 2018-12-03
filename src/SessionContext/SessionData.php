@@ -12,17 +12,33 @@
 namespace Polymorphine\Session\SessionContext;
 
 use Polymorphine\Session\SessionContext;
+use InvalidArgumentException;
 
 
 class SessionData
 {
+    private const USER_KEY = 'session.user.id';
+
     private $context;
+    private $userId;
     private $data;
 
     public function __construct(SessionContext $context, array $data = [])
     {
         $this->context = $context;
+        $this->userId  = $this->pullUserId($data);
         $this->data    = $data;
+    }
+
+    public function newUserContext(string $userId = null): void
+    {
+        $this->userId = $userId;
+        $this->context->reset();
+    }
+
+    public function userId(): ?string
+    {
+        return $this->userId;
     }
 
     public function get(string $key, $default = null)
@@ -32,6 +48,10 @@ class SessionData
 
     public function set(string $key, $value): void
     {
+        if ($key === self::USER_KEY) {
+            $message = 'Key `%s` is reserved for user id and cannot be set directly';
+            throw new InvalidArgumentException(sprintf($message, self::USER_KEY));
+        }
         $this->data[$key] = $value;
     }
 
@@ -47,16 +67,20 @@ class SessionData
 
     public function clear(): void
     {
-        $this->data = [];
-    }
-
-    public function resetContext()
-    {
-        $this->context->reset();
+        $this->data   = [];
+        $this->userId = null;
     }
 
     public function commit(): void
     {
-        $this->context->commit($this->data);
+        $userId = $this->userId ? [self::USER_KEY => $this->userId] : [];
+        $this->context->commit($userId + $this->data);
+    }
+
+    private function pullUserId(array &$data): ?string
+    {
+        $userId = $data[self::USER_KEY] ?? null;
+        if ($userId) { unset($data[self::USER_KEY]); }
+        return $userId;
     }
 }

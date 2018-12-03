@@ -14,6 +14,7 @@ namespace Polymorphine\Session\Tests;
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionContext\SessionData;
 use Polymorphine\Session\Tests\Doubles\MockedSessionContext;
+use InvalidArgumentException;
 
 
 class SessionDataTest extends TestCase
@@ -66,10 +67,33 @@ class SessionDataTest extends TestCase
         $this->assertSame('default', $storage->get('foo', 'default'));
     }
 
-    public function testResetContextIsCalledOnSessionContext()
+    public function testUserId()
     {
-        $this->storage([], $manager)->resetContext();
+        $data    = ['session.user.id' => 'user', 'other' => 'value'];
+        $storage = $this->storage($data, $manager);
+        $this->assertSame('user', $storage->userId());
+        $this->assertNull($storage->get('session.user.id'));
+        $storage->commit();
+        $this->assertSame($data, $manager->writtenData);
+    }
+
+    public function testNewUserContext()
+    {
+        $storage = $this->storage([], $manager);
+        $this->assertNull($storage->userId());
+
+        $storage->newUserContext('new');
         $this->assertTrue($manager->resetCalled);
+        $this->assertSame('new', $storage->userId());
+
+        $storage->commit();
+        $this->assertSame(['session.user.id' => 'new'], $manager->writtenData);
+    }
+
+    public function testSettingDataWithUserKey_ThrowsException()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->storage([])->set('session.user.id', 'test');
     }
 
     public function testCommitSession()
