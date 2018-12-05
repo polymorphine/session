@@ -69,10 +69,10 @@ class SessionDataTest extends TestCase
 
     public function testUserId()
     {
-        $data    = ['session.user.id' => 'user', 'other' => 'value'];
+        $data    = [SessionData::USER_KEY => 'user', 'other' => 'value'];
         $storage = $this->storage($data, $manager);
         $this->assertSame('user', $storage->userId());
-        $this->assertNull($storage->get('session.user.id'));
+        $this->assertNull($storage->get(SessionData::USER_KEY));
         $storage->commit();
         $this->assertSame($data, $manager->writtenData);
     }
@@ -87,13 +87,13 @@ class SessionDataTest extends TestCase
         $this->assertSame('new', $storage->userId());
 
         $storage->commit();
-        $this->assertSame(['session.user.id' => 'new'], $manager->writtenData);
+        $this->assertSame([SessionData::USER_KEY => 'new'], $manager->writtenData);
     }
 
     public function testSettingDataWithUserKey_ThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->storage([])->set('session.user.id', 'test');
+        $this->storage([])->set(SessionData::USER_KEY, 'test');
     }
 
     public function testCommitSession()

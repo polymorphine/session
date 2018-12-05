@@ -17,7 +17,7 @@ use InvalidArgumentException;
 
 class SessionData
 {
-    private const USER_KEY = 'session.user.id';
+    public const USER_KEY = 'session.user.id';
 
     private $context;
     private $userId;
