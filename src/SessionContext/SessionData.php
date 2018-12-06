@@ -30,13 +30,13 @@ class SessionData
         $this->data    = $data;
     }
 
-    public function newUserContext(string $userId = null): void
+    public function newUserContext($userId = null): void
     {
         $this->userId = $userId;
         $this->context->reset();
     }
 
-    public function userId(): ?string
+    public function userId()
     {
         return $this->userId;
     }
