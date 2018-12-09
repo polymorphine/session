@@ -9,13 +9,12 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Session\SessionContext;
+namespace Polymorphine\Session;
 
-use Polymorphine\Session\SessionContext;
 use InvalidArgumentException;
 
 
-class SessionData
+class SessionStorage
 {
     public const USER_KEY = 'session.user.id';
 

@@ -11,7 +11,7 @@
 
 namespace Polymorphine\Session\Tests\Doubles;
 
-use Polymorphine\Session\SessionContext\SessionData;
+use Polymorphine\Session\SessionContext\Session;
 use Polymorphine\Session\SessionContext;
 
 
@@ -24,7 +24,7 @@ class MockedSessionContext implements SessionContext
     {
     }
 
-    public function data(): SessionData
+    public function data(): Session
     {
     }
 

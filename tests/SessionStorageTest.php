@@ -12,16 +12,16 @@
 namespace Polymorphine\Session\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Polymorphine\Session\SessionContext\SessionData;
+use Polymorphine\Session\SessionStorage;
 use Polymorphine\Session\Tests\Doubles\MockedSessionContext;
 use InvalidArgumentException;
 
 
-class SessionDataTest extends TestCase
+class SessionStorageTest extends TestCase
 {
     public function testInstantiation()
     {
-        $this->assertInstanceOf(SessionData::class, $session = $this->storage());
+        $this->assertInstanceOf(SessionStorage::class, $session = $this->storage());
     }
 
     public function testGetData()
@@ -69,10 +69,10 @@ class SessionDataTest extends TestCase
 
     public function testUserId()
     {
-        $data    = [SessionData::USER_KEY => 'user', 'other' => 'value'];
+        $data    = [SessionStorage::USER_KEY => 'user', 'other' => 'value'];
         $storage = $this->storage($data, $manager);
         $this->assertSame('user', $storage->userId());
-        $this->assertNull($storage->get(SessionData::USER_KEY));
+        $this->assertNull($storage->get(SessionStorage::USER_KEY));
         $storage->commit();
         $this->assertSame($data, $manager->writtenData);
     }
@@ -87,13 +87,13 @@ class SessionDataTest extends TestCase
         $this->assertSame('new', $storage->userId());
 
         $storage->commit();
-        $this->assertSame([SessionData::USER_KEY => 'new'], $manager->writtenData);
+        $this->assertSame([SessionStorage::USER_KEY => 'new'], $manager->writtenData);
     }
 
     public function testSettingDataWithUserKey_ThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->storage([])->set(SessionData::USER_KEY, 'test');
+        $this->storage([])->set(SessionStorage::USER_KEY, 'test');
     }
 
     public function testCommitSession()
@@ -116,9 +116,9 @@ class SessionDataTest extends TestCase
         $this->assertTrue(array_key_exists('foo', $manager->writtenData));
     }
 
-    private function storage(array $data = [], &$manager = null): SessionData
+    private function storage(array $data = [], &$manager = null): SessionStorage
     {
         $manager = $manager ?: new MockedSessionContext();
-        return new SessionData($manager, $data);
+        return new SessionStorage($manager, $data);
     }
 }

@@ -11,10 +11,8 @@
 
 namespace Polymorphine\Session;
 
-use Polymorphine\Session\SessionContext\SessionData;
 
-
-interface SessionProvider
+interface SessionStorageProvider
 {
-    public function session(): SessionData;
+    public function storage(): SessionStorage;
 }
