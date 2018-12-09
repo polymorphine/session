@@ -13,6 +13,7 @@ namespace Polymorphine\Session\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionContext;
+use Polymorphine\Session\SessionProvider;
 use Polymorphine\Session\Tests\Doubles\FakeRequestHandler;
 use Polymorphine\Session\Tests\Doubles\FakeServerRequest;
 use Polymorphine\Session\Tests\Doubles\MockedCookie;
@@ -35,6 +36,7 @@ class NativeSessionContextTest extends TestCase
         $context = $this->context();
         $this->assertInstanceOf(MiddlewareInterface::class, $context);
         $this->assertInstanceOf(SessionContext::class, $context);
+        $this->assertInstanceOf(SessionProvider::class, $context);
     }
 
     public function testSessionNameIsSynchronizedWithCookieName()
@@ -48,7 +50,7 @@ class NativeSessionContextTest extends TestCase
     {
         $context = $this->context($cookie);
         $handler = $this->handler(function () use ($context) {
-            $context->data()->set('foo', 'bar');
+            $context->session()->set('foo', 'bar');
         });
 
         $context->process($this->request(), $handler);
@@ -62,7 +64,7 @@ class NativeSessionContextTest extends TestCase
 
         $context = $this->context($cookie);
         $handler = $this->handler(function () use ($context) {
-            $session = $context->data();
+            $session = $context->session();
             $session->set('foo', $session->get('foo') . '-baz');
         });
 
@@ -91,7 +93,7 @@ class NativeSessionContextTest extends TestCase
 
         $context = $this->context($cookie);
         $handler = $this->handler(function () use ($context) {
-            $context->data()->clear();
+            $context->session()->clear();
         });
 
         $context->process($this->request(true), $handler);
@@ -113,7 +115,7 @@ class NativeSessionContextTest extends TestCase
         $context = $this->context();
 
         $this->expectException(RuntimeException::class);
-        $context->data();
+        $context->session();
     }
 
     private function request($cookie = false)

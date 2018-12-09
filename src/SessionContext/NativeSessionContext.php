@@ -11,16 +11,17 @@
 
 namespace Polymorphine\Session\SessionContext;
 
-use Polymorphine\Session\SessionContext;
-use Polymorphine\Headers\Cookie;
 use Psr\Http\Server\MiddlewareInterface;
+use Polymorphine\Session\SessionContext;
+use Polymorphine\Session\SessionProvider;
+use Polymorphine\Headers\Cookie;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 
 
-class NativeSessionContext implements MiddlewareInterface, SessionContext
+class NativeSessionContext implements MiddlewareInterface, SessionContext, SessionProvider
 {
     /** @var SessionData */
     private $sessionData;
@@ -39,12 +40,12 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext
         $this->sessionData = new SessionData($this, $_SESSION ?? []);
 
         $response = $handler->handle($request);
-        $this->data()->commit();
+        $this->session()->commit();
 
         return $response;
     }
 
-    public function data(): SessionData
+    public function session(): SessionData
     {
         if (!$this->sessionData) {
             throw new RuntimeException('Session context not started');

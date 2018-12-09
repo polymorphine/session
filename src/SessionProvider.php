@@ -11,10 +11,10 @@
 
 namespace Polymorphine\Session;
 
+use Polymorphine\Session\SessionContext\SessionData;
 
-interface SessionContext
+
+interface SessionProvider
 {
-    public function reset(): void;
-
-    public function commit(array $data): void;
+    public function session(): SessionData;
 }
