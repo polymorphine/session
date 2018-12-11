@@ -24,7 +24,7 @@ use RuntimeException;
 
 class NativeSessionContext implements MiddlewareInterface, SessionContext, SessionStorageProvider
 {
-    /** @var SessionStorage */
+    /** @var SessionStorage\ContextSessionStorage */
     private $sessionData;
     private $cookie;
 
@@ -38,10 +38,10 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext, Sessi
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if ($this->containsSessionCookie($request)) { $this->start(); }
-        $this->sessionData = new SessionStorage($this, $_SESSION ?? []);
+        $this->sessionData = new SessionStorage\ContextSessionStorage($this, $_SESSION ?? []);
 
         $response = $handler->handle($request);
-        $this->storage()->commit();
+        $this->sessionData->commit();
 
         return $response;
     }

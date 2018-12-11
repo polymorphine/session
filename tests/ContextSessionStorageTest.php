@@ -17,7 +17,7 @@ use Polymorphine\Session\Tests\Doubles\MockedSessionContext;
 use InvalidArgumentException;
 
 
-class SessionStorageTest extends TestCase
+class ContextSessionStorageTest extends TestCase
 {
     public function testInstantiation()
     {
@@ -116,9 +116,9 @@ class SessionStorageTest extends TestCase
         $this->assertTrue(array_key_exists('foo', $manager->writtenData));
     }
 
-    private function storage(array $data = [], &$manager = null): SessionStorage
+    private function storage(array $data = [], &$manager = null): SessionStorage\ContextSessionStorage
     {
         $manager = $manager ?: new MockedSessionContext();
-        return new SessionStorage($manager, $data);
+        return new SessionStorage\ContextSessionStorage($manager, $data);
     }
 }
