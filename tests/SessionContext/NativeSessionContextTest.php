@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Session\Tests;
+namespace Polymorphine\Session\Tests\SessionContext;
 
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionContext;
@@ -21,7 +21,7 @@ use Polymorphine\Session\Tests\Fixtures\SessionGlobalState;
 use Psr\Http\Server\MiddlewareInterface;
 use RuntimeException;
 
-require_once __DIR__ . '/Fixtures/session-functions.php';
+require_once dirname(__DIR__) . '/Fixtures/session-functions.php';
 
 
 class NativeSessionContextTest extends TestCase

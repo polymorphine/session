@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Session\Tests;
+namespace Polymorphine\Session\Tests\SessionStorage;
 
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionStorage;
