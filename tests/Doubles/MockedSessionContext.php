@@ -11,7 +11,6 @@
 
 namespace Polymorphine\Session\Tests\Doubles;
 
-use Polymorphine\Session\SessionContext\Session;
 use Polymorphine\Session\SessionContext;
 
 
@@ -19,14 +18,6 @@ class MockedSessionContext implements SessionContext
 {
     public $writtenData;
     public $resetCalled = false;
-
-    public function start(): void
-    {
-    }
-
-    public function data(): Session
-    {
-    }
 
     public function reset(): void
     {
