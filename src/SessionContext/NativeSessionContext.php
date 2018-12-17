@@ -29,6 +29,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext, Sessi
     private $cookie;
 
     private $sessionStarted = false;
+    private $regenerateId   = false;
 
     public function __construct(Cookie $cookie)
     {
@@ -57,8 +58,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext, Sessi
     public function reset(): void
     {
         if (!$this->sessionStarted) { return; }
-        session_regenerate_id(true);
-        $this->cookie->send(session_id());
+        $this->regenerateId = true;
     }
 
     public function commit(array $data): void
@@ -70,6 +70,9 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext, Sessi
 
         if (!$this->sessionStarted) {
             $this->start();
+            $this->cookie->send(session_id());
+        } elseif ($this->regenerateId) {
+            session_regenerate_id(true);
             $this->cookie->send(session_id());
         }
 

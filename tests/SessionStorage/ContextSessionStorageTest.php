@@ -90,6 +90,12 @@ class ContextSessionStorageTest extends TestCase
         $this->assertSame([SessionStorage::USER_KEY => 'new'], $manager->writtenData);
     }
 
+    public function testClearSetsNewUserContext()
+    {
+        $this->storage([], $manager)->clear();
+        $this->assertTrue($manager->resetCalled);
+    }
+
     public function testSettingDataWithUserKey_ThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);

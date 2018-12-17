@@ -66,8 +66,8 @@ class ContextSessionStorage implements SessionStorage
 
     public function clear(): void
     {
-        $this->data   = [];
-        $this->userId = null;
+        $this->data = [];
+        $this->newUserContext();
     }
 
     public function commit(): void
