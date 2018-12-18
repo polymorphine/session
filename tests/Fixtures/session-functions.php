@@ -43,7 +43,6 @@ function session_write_close()
     global $_SESSION;
 
     SessionGlobalState::$status = PHP_SESSION_NONE;
-    SessionGlobalState::$id     = '';
     SessionGlobalState::$data   = $_SESSION;
 
     $_SESSION = null;
