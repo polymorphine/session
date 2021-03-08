@@ -1,8 +1,9 @@
 # Polymorphine/Session
-[![Build Status](https://travis-ci.org/shudd3r/polymorphine-session.svg?branch=develop)](https://travis-ci.org/shudd3r/polymorphine-session)
-[![Coverage Status](https://coveralls.io/repos/github/shudd3r/polymorphine-session/badge.svg?branch=develop)](https://coveralls.io/github/shudd3r/polymorphine-session?branch=develop)
-[![PHP from Packagist](https://img.shields.io/packagist/php-v/polymorphine/session/dev-develop.svg)](https://packagist.org/packages/polymorphine/session)
-[![Packagist](https://img.shields.io/packagist/l/polymorphine/session.svg)](https://packagist.org/packages/polymorphine/session)
+[![Latest Stable Version](https://poser.pugx.org/polymorphine/session/version)](https://packagist.org/packages/polymorphine/session)
+[![Build status](https://github.com/polymorphine/session/workflows/build/badge.svg)](https://github.com/polymorphine/session/actions)
+[![Coverage status](https://coveralls.io/repos/github/polymorphine/session/badge.svg?branch=develop)](https://coveralls.io/github/polymorphine/session?branch=develop)
+[![PHP version](https://img.shields.io/packagist/php-v/polymorphine/session.svg)](https://packagist.org/packages/polymorphine/session)
+[![LICENSE](https://img.shields.io/github/license/polymorphine/session.svg?color=blue)](LICENSE)
 ### HTTP Request session context service handled by PSR-15 middleware
 
 ### Installation with [Composer](https://getcomposer.org/)
