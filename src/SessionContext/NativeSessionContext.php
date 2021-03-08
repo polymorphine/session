@@ -31,6 +31,9 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext, Sessi
     private $sessionStarted = false;
     private $regenerateId   = false;
 
+    /**
+     * @param Cookie $cookie
+     */
     public function __construct(Cookie $cookie)
     {
         $this->cookie = $cookie;

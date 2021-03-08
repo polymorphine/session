@@ -20,6 +20,9 @@ class LazySessionStorage implements SessionStorage
     private $storage;
     private $provider;
 
+    /**
+     * @param SessionStorageProvider $provider
+     */
     public function __construct(SessionStorageProvider $provider)
     {
         $this->provider = $provider;

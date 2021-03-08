@@ -26,8 +26,9 @@ class LazySessionStorageTest extends TestCase
 
     /**
      * @dataProvider methodCalls
+     *
      * @param string $method
-     * @param array $params
+     * @param array  $params
      */
     public function testMethodCalls(string $method, array $params)
     {
@@ -36,7 +37,7 @@ class LazySessionStorageTest extends TestCase
         $storage  = new SessionStorage\LazySessionStorage($provider);
         $this->assertFalse($mock->invoked);
 
-        $storage->$method(...$params);
+        $storage->{$method}(...$params);
         $this->assertTrue($mock->invoked);
         $this->assertSame([$method => $params], $mock->called);
     }

@@ -14,7 +14,15 @@ namespace Polymorphine\Session;
 
 interface SessionContext
 {
+    /**
+     * Orders to regenerate session id.
+     */
     public function reset(): void;
 
+    /**
+     * Saves data from session storage.
+     *
+     * @param array $data
+     */
     public function commit(array $data): void;
 }

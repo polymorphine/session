@@ -22,6 +22,10 @@ class ContextSessionStorage implements SessionStorage
     private $userId;
     private $data;
 
+    /**
+     * @param SessionContext $context
+     * @param array          $data
+     */
     public function __construct(SessionContext $context, array $data = [])
     {
         $this->context = $context;
@@ -70,6 +74,9 @@ class ContextSessionStorage implements SessionStorage
         $this->newUserContext();
     }
 
+    /**
+     * Orders to pass stored data to session context.
+     */
     public function commit(): void
     {
         $userId = $this->userId ? [self::USER_KEY => $this->userId] : [];

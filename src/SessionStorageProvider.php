@@ -14,5 +14,8 @@ namespace Polymorphine\Session;
 
 interface SessionStorageProvider
 {
+    /**
+     * @return SessionStorage Interface specialized to access & modify session data
+     */
     public function storage(): SessionStorage;
 }
