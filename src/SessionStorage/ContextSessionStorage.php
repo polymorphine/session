@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -18,10 +18,14 @@ use InvalidArgumentException;
 
 class ContextSessionStorage implements SessionStorage
 {
-    private $context;
-    private $userId;
-    private $data;
+    private SessionContext $context;
+    private array          $data;
+    private ?string        $userId;
 
+    /**
+     * @param SessionContext $context
+     * @param array          $data
+     */
     public function __construct(SessionContext $context, array $data = [])
     {
         $this->context = $context;
@@ -29,13 +33,13 @@ class ContextSessionStorage implements SessionStorage
         $this->data    = $data;
     }
 
-    public function newUserContext($userId = null): void
+    public function newUserContext(string $userId = null): void
     {
         $this->userId = $userId;
         $this->context->reset();
     }
 
-    public function userId()
+    public function userId(): ?string
     {
         return $this->userId;
     }
@@ -70,6 +74,9 @@ class ContextSessionStorage implements SessionStorage
         $this->newUserContext();
     }
 
+    /**
+     * Orders to pass stored data to session context.
+     */
     public function commit(): void
     {
         $userId = $this->userId ? [self::USER_KEY => $this->userId] : [];

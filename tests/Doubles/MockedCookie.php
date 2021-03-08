@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -18,9 +18,9 @@ use Polymorphine\Headers\Cookie\Exception\IllegalCharactersException;
 
 class MockedCookie implements Cookie
 {
-    public $name;
-    public $value;
-    public $deleted = false;
+    public string  $name;
+    public ?string $value = null;
+    public bool    $deleted = false;
 
     public function __construct(string $name)
     {

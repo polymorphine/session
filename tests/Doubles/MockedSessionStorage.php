@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -16,10 +16,10 @@ use Polymorphine\Session\SessionStorage;
 
 class MockedSessionStorage implements SessionStorage
 {
-    public $invoked = false;
-    public $called;
+    public bool  $invoked = false;
+    public array $called = [];
 
-    public function userId()
+    public function userId(): ?string
     {
         $this->called(__FUNCTION__, func_get_args());
         return 'userId';
@@ -36,7 +36,7 @@ class MockedSessionStorage implements SessionStorage
         return true;
     }
 
-    public function get(string $key, $default = null)
+    public function get(string $key, $default = null): string
     {
         $this->called(__FUNCTION__, func_get_args());
         return 'something';

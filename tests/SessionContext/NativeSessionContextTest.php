@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -14,11 +14,9 @@ namespace Polymorphine\Session\Tests\SessionContext;
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionContext;
 use Polymorphine\Session\SessionStorageProvider;
-use Polymorphine\Session\Tests\Doubles\FakeRequestHandler;
-use Polymorphine\Session\Tests\Doubles\FakeServerRequest;
-use Polymorphine\Session\Tests\Doubles\MockedCookie;
 use Polymorphine\Session\Tests\Fixtures\SessionGlobalState;
 use Psr\Http\Server\MiddlewareInterface;
+use Polymorphine\Session\Tests\Doubles;
 use RuntimeException;
 
 require_once dirname(__DIR__) . '/Fixtures/session-functions.php';
@@ -26,7 +24,7 @@ require_once dirname(__DIR__) . '/Fixtures/session-functions.php';
 
 class NativeSessionContextTest extends TestCase
 {
-    public function tearDown()
+    public function tearDown(): void
     {
         SessionGlobalState::reset();
     }
@@ -41,7 +39,7 @@ class NativeSessionContextTest extends TestCase
 
     public function testSessionNameIsSynchronizedWithCookieName()
     {
-        $cookie = new MockedCookie('MySESSION');
+        $cookie = new Doubles\MockedCookie('MySESSION');
         $this->context($cookie)->process($this->request(), $this->handler());
         $this->assertSame('MySESSION', SessionGlobalState::$name);
     }
@@ -134,9 +132,9 @@ class NativeSessionContextTest extends TestCase
         $context->storage();
     }
 
-    private function request($cookie = false)
+    private function request($cookie = false): Doubles\FakeServerRequest
     {
-        $request = new FakeServerRequest();
+        $request = new Doubles\FakeServerRequest();
 
         if ($cookie) {
             $request->cookies[SessionGlobalState::$name] = SessionGlobalState::$id;
@@ -145,14 +143,14 @@ class NativeSessionContextTest extends TestCase
         return $request;
     }
 
-    private function handler(callable $process = null)
+    private function handler(callable $process = null): Doubles\FakeRequestHandler
     {
-        return new FakeRequestHandler($process);
+        return new Doubles\FakeRequestHandler($process);
     }
 
-    private function context(&$cookie = null)
+    private function context(&$cookie = null): SessionContext\NativeSessionContext
     {
-        $cookie = $cookie ?: new MockedCookie(SessionGlobalState::$name);
+        $cookie = $cookie ?: new Doubles\MockedCookie(SessionGlobalState::$name);
         return new SessionContext\NativeSessionContext($cookie);
     }
 }

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -13,35 +13,36 @@ namespace Polymorphine\Session\Tests\SessionStorage;
 
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionStorage;
-use Polymorphine\Session\Tests\Doubles\FakeSessionStorageProvider;
+use Polymorphine\Session\Tests\Doubles;
 
 
 class LazySessionStorageTest extends TestCase
 {
     public function testInstantiation()
     {
-        $storage = new SessionStorage\LazySessionStorage(new FakeSessionStorageProvider());
+        $storage = new SessionStorage\LazySessionStorage(new Doubles\FakeSessionStorageProvider());
         $this->assertInstanceOf(SessionStorage::class, $storage);
     }
 
     /**
      * @dataProvider methodCalls
+     *
      * @param string $method
-     * @param array $params
+     * @param array  $params
      */
     public function testMethodCalls(string $method, array $params)
     {
-        $provider = new FakeSessionStorageProvider();
+        $provider = new Doubles\FakeSessionStorageProvider();
         $mock     = $provider->storage;
         $storage  = new SessionStorage\LazySessionStorage($provider);
         $this->assertFalse($mock->invoked);
 
-        $storage->$method(...$params);
+        $storage->{$method}(...$params);
         $this->assertTrue($mock->invoked);
         $this->assertSame([$method => $params], $mock->called);
     }
 
-    public function methodCalls()
+    public function methodCalls(): array
     {
         return [
             ['newUserContext', ['user']],

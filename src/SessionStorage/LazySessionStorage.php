@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -17,15 +17,18 @@ use Polymorphine\Session\SessionStorageProvider;
 
 class LazySessionStorage implements SessionStorage
 {
-    private $storage;
-    private $provider;
+    private SessionStorageProvider $provider;
+    private SessionStorage         $storage;
 
+    /**
+     * @param SessionStorageProvider $provider
+     */
     public function __construct(SessionStorageProvider $provider)
     {
         $this->provider = $provider;
     }
 
-    public function userId()
+    public function userId(): ?string
     {
         return $this->storage()->userId();
     }
@@ -62,6 +65,6 @@ class LazySessionStorage implements SessionStorage
 
     private function storage(): SessionStorage
     {
-        return $this->storage ?: $this->storage = $this->provider->storage();
+        return $this->storage ??= $this->provider->storage();
     }
 }

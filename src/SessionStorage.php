@@ -16,17 +16,48 @@ interface SessionStorage
 {
     public const USER_KEY = 'session.user.id';
 
-    public function userId();
+    /**
+     * By default an alias to SessionStorage::get('session.user.id').
+     *
+     * @return mixed User id stored within session data
+     */
+    public function userId(): ?string;
 
-    public function newUserContext($userId = null): void;
+    /**
+     * By default an alias to SessionStorage::set('session.user.id', $value).
+     *
+     * @param string|null $userId
+     */
+    public function newUserContext(string $userId = null): void;
 
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
     public function has(string $key): bool;
 
+    /**
+     * @param string $key
+     * @param null   $default
+     *
+     * @return mixed
+     */
     public function get(string $key, $default = null);
 
+    /**
+     * @param string $key
+     * @param $value
+     */
     public function set(string $key, $value): void;
 
+    /**
+     * @param string $key
+     */
     public function remove(string $key): void;
 
+    /**
+     * Removes all data stored in session.
+     */
     public function clear(): void;
 }

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -17,7 +17,7 @@ use Polymorphine\Session\SessionStorage;
 
 class FakeSessionStorageProvider implements SessionStorageProvider
 {
-    public $storage;
+    public MockedSessionStorage $storage;
 
     public function __construct()
     {

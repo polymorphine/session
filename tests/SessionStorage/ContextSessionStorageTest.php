@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -13,7 +13,7 @@ namespace Polymorphine\Session\Tests\SessionStorage;
 
 use PHPUnit\Framework\TestCase;
 use Polymorphine\Session\SessionStorage;
-use Polymorphine\Session\Tests\Doubles\MockedSessionContext;
+use Polymorphine\Session\Tests\Doubles;
 use InvalidArgumentException;
 
 
@@ -119,12 +119,12 @@ class ContextSessionStorageTest extends TestCase
         $storage->set('foo', null);
         $this->assertTrue($storage->has('foo'));
         $storage->commit();
-        $this->assertTrue(array_key_exists('foo', $manager->writtenData));
+        $this->assertArrayHasKey('foo', $manager->writtenData);
     }
 
     private function storage(array $data = [], &$manager = null): SessionStorage\ContextSessionStorage
     {
-        $manager = $manager ?: new MockedSessionContext();
+        $manager = $manager ?: new Doubles\MockedSessionContext();
         return new SessionStorage\ContextSessionStorage($manager, $data);
     }
 }

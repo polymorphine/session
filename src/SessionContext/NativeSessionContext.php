@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Session package.
@@ -15,6 +15,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Polymorphine\Session\SessionContext;
 use Polymorphine\Session\SessionStorageProvider;
 use Polymorphine\Session\SessionStorage;
+use Polymorphine\Session\SessionStorage\ContextSessionStorage;
 use Polymorphine\Headers\Cookie;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,13 +25,15 @@ use RuntimeException;
 
 class NativeSessionContext implements MiddlewareInterface, SessionContext, SessionStorageProvider
 {
-    /** @var SessionStorage\ContextSessionStorage */
-    private $sessionData;
-    private $cookie;
+    private ContextSessionStorage $sessionData;
+    private Cookie                $cookie;
 
-    private $sessionStarted = false;
-    private $regenerateId   = false;
+    private bool $sessionStarted = false;
+    private bool $regenerateId   = false;
 
+    /**
+     * @param Cookie $cookie
+     */
     public function __construct(Cookie $cookie)
     {
         $this->cookie = $cookie;
@@ -39,7 +42,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext, Sessi
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if ($this->containsSessionCookie($request)) { $this->start(); }
-        $this->sessionData = new SessionStorage\ContextSessionStorage($this, $_SESSION ?? []);
+        $this->sessionData = new ContextSessionStorage($this, $_SESSION ?? []);
 
         $response = $handler->handle($request);
         $this->sessionData->commit();
@@ -49,7 +52,7 @@ class NativeSessionContext implements MiddlewareInterface, SessionContext, Sessi
 
     public function storage(): SessionStorage
     {
-        if (!$this->sessionData) {
+        if (!isset($this->sessionData)) {
             throw new RuntimeException('Session context not started');
         }
         return $this->sessionData;
