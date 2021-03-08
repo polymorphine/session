@@ -16,8 +16,8 @@ use Polymorphine\Session\SessionContext;
 
 class MockedSessionContext implements SessionContext
 {
-    public $writtenData;
-    public $resetCalled = false;
+    public array $writtenData = [];
+    public bool  $resetCalled = false;
 
     public function reset(): void
     {

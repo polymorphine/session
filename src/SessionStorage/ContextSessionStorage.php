@@ -18,9 +18,9 @@ use InvalidArgumentException;
 
 class ContextSessionStorage implements SessionStorage
 {
-    private $context;
-    private $userId;
-    private $data;
+    private SessionContext $context;
+    private array          $data;
+    private ?string        $userId;
 
     /**
      * @param SessionContext $context
@@ -33,13 +33,13 @@ class ContextSessionStorage implements SessionStorage
         $this->data    = $data;
     }
 
-    public function newUserContext($userId = null): void
+    public function newUserContext(string $userId = null): void
     {
         $this->userId = $userId;
         $this->context->reset();
     }
 
-    public function userId()
+    public function userId(): ?string
     {
         return $this->userId;
     }

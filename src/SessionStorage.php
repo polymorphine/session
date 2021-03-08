@@ -21,14 +21,14 @@ interface SessionStorage
      *
      * @return mixed User id stored within session data
      */
-    public function userId();
+    public function userId(): ?string;
 
     /**
      * By default an alias to SessionStorage::set('session.user.id', $value).
      *
-     * @param null $userId
+     * @param string|null $userId
      */
-    public function newUserContext($userId = null): void;
+    public function newUserContext(string $userId = null): void;
 
     /**
      * @param string $key

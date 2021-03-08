@@ -18,16 +18,16 @@ use Psr\Http\Message\ResponseInterface;
 
 class FakeRequestHandler implements RequestHandlerInterface
 {
-    private $sideEffect;
+    private $process;
 
-    public function __construct(callable $sideEffect = null)
+    public function __construct(callable $process = null)
     {
-        $this->sideEffect = $sideEffect;
+        $this->process = $process;
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        if ($this->sideEffect) { ($this->sideEffect)(); }
+        if ($this->process) { ($this->process)(); }
         return new DummyResponse();
     }
 }

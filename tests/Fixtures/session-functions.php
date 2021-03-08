@@ -23,17 +23,17 @@ function session_start()
     SessionGlobalState::$id     = 'DefaultSessionId';
 }
 
-function session_status()
+function session_status(): int
 {
     return SessionGlobalState::$status;
 }
 
-function session_name(string $name = null)
+function session_name(string $name = null): string
 {
     return $name ? SessionGlobalState::$name = $name : SessionGlobalState::$name;
 }
 
-function session_id(string $id = null)
+function session_id(string $id = null): string
 {
     return $id ? SessionGlobalState::$id = $id : SessionGlobalState::$id;
 }

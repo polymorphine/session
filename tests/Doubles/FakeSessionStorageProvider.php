@@ -17,7 +17,7 @@ use Polymorphine\Session\SessionStorage;
 
 class FakeSessionStorageProvider implements SessionStorageProvider
 {
-    public $storage;
+    public MockedSessionStorage $storage;
 
     public function __construct()
     {
