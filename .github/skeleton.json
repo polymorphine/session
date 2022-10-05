@@ -1,0 +1,8 @@
+{
+    "package.name": "Polymorphine/Session",
+    "repository.name": "polymorphine/session",
+    "package.description": "HTTP Request session context service handled by PSR-15 middleware",
+    "namespace.src": "Polymorphine\\Session",
+    "author.name": "Shudd3r",
+    "author.email": "q3.shudder@gmail.com"
+}

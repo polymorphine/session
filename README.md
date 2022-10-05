@@ -1,5 +1,5 @@
 # Polymorphine/Session
-[![Latest Stable Version](https://poser.pugx.org/polymorphine/session/version)](https://packagist.org/packages/polymorphine/session)
+[![Latest stable release](https://poser.pugx.org/polymorphine/session/version)](https://packagist.org/packages/polymorphine/session)
 [![Build status](https://github.com/polymorphine/session/workflows/build/badge.svg)](https://github.com/polymorphine/session/actions)
 [![Coverage status](https://coveralls.io/repos/github/polymorphine/session/badge.svg?branch=develop)](https://coveralls.io/github/polymorphine/session?branch=develop)
 [![PHP version](https://img.shields.io/packagist/php-v/polymorphine/session.svg)](https://packagist.org/packages/polymorphine/session)
@@ -7,7 +7,9 @@
 ### HTTP Request session context service handled by PSR-15 middleware
 
 ### Installation with [Composer](https://getcomposer.org/)
-    php composer.phar require polymorphine/session
+```bash
+composer require polymorphine/session
+```
 
 ### How it works?
 
@@ -19,4 +21,3 @@ and [`SessionStorage`](src/SessionStorage.php) will become available.
 The session storage is not superglobal anymore, and it can be passed explicitly into objects
 that require access to its data. The downside is that it **cannot be instantiated directly
 _before request processing_** is started, so lazy initialisation is necessary one way or another.
-
