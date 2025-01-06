@@ -33,7 +33,7 @@ class ContextSessionStorage implements SessionStorage
         $this->data    = $data;
     }
 
-    public function newUserContext(string $userId = null): void
+    public function newUserContext(?string $userId = null): void
     {
         $this->userId = $userId;
         $this->context->reset();

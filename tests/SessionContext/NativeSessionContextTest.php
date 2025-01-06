@@ -143,7 +143,7 @@ class NativeSessionContextTest extends TestCase
         return $request;
     }
 
-    private function handler(callable $process = null): Doubles\FakeRequestHandler
+    private function handler(?callable $process = null): Doubles\FakeRequestHandler
     {
         return new Doubles\FakeRequestHandler($process);
     }

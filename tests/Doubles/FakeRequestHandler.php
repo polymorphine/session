@@ -20,7 +20,7 @@ class FakeRequestHandler implements RequestHandlerInterface
 {
     private $process;
 
-    public function __construct(callable $process = null)
+    public function __construct(?callable $process = null)
     {
         $this->process = $process;
     }
