@@ -28,12 +28,12 @@ function session_status(): int
     return SessionGlobalState::$status;
 }
 
-function session_name(string $name = null): string
+function session_name(?string $name = null): string
 {
     return $name ? SessionGlobalState::$name = $name : SessionGlobalState::$name;
 }
 
-function session_id(string $id = null): string
+function session_id(?string $id = null): string
 {
     return $id ? SessionGlobalState::$id = $id : SessionGlobalState::$id;
 }

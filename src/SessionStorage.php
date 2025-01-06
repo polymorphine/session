@@ -28,7 +28,7 @@ interface SessionStorage
      *
      * @param string|null $userId
      */
-    public function newUserContext(string $userId = null): void;
+    public function newUserContext(?string $userId = null): void;
 
     /**
      * @param string $key
@@ -47,7 +47,7 @@ interface SessionStorage
 
     /**
      * @param string $key
-     * @param $value
+     * @param mixed  $value
      */
     public function set(string $key, $value): void;
 
