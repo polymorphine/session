@@ -12,8 +12,6 @@
 namespace Polymorphine\Session\Tests\Doubles;
 
 use Polymorphine\Headers\Cookie;
-use Polymorphine\Headers\Cookie\Exception\CookieAlreadySentException;
-use Polymorphine\Headers\Cookie\Exception\IllegalCharactersException;
 
 
 class MockedCookie implements Cookie
@@ -34,25 +32,16 @@ class MockedCookie implements Cookie
 
     public function send(string $value): void
     {
-        if (!is_null($this->value)) {
-            throw new CookieAlreadySentException();
-        }
         $this->value = $this->valid($value);
     }
 
     public function revoke(): void
     {
-        if (!is_null($this->value)) {
-            throw new CookieAlreadySentException();
-        }
         $this->deleted = true;
     }
 
     private function valid(string $value): string
     {
-        if (preg_match('#[^a-z0-9A-Z]#', $value)) {
-            throw new IllegalCharactersException();
-        }
         return $value;
     }
 }

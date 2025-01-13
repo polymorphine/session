@@ -23,6 +23,13 @@ class FakeServerRequest implements ServerRequestInterface
     public ?UriInterface    $uri;
     public ?StreamInterface $stream;
 
+    public static function withSessionCookie($name, $id): self
+    {
+        $request = new self();
+        $request->cookies[$name] = $id;
+        return $request;
+    }
+
     public function getMethod(): string
     {
         return 'GET';
@@ -160,6 +167,7 @@ class FakeServerRequest implements ServerRequestInterface
 
     public function getAttribute($name, $default = null)
     {
+        return $default;
     }
 
     public function withAttribute($name, $value): self

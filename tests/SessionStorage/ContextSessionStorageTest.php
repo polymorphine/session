@@ -12,6 +12,7 @@
 namespace Polymorphine\Session\Tests\SessionStorage;
 
 use PHPUnit\Framework\TestCase;
+use Polymorphine\Session\SessionStorage\ContextSessionStorage as Storage;
 use Polymorphine\Session\SessionStorage;
 use Polymorphine\Session\Tests\Doubles;
 use InvalidArgumentException;
@@ -19,18 +20,18 @@ use InvalidArgumentException;
 
 class ContextSessionStorageTest extends TestCase
 {
-    public function testInstantiation()
+    public function test_Instantiation()
     {
-        $this->assertInstanceOf(SessionStorage::class, $session = $this->storage());
+        $this->assertInstanceOf(SessionStorage::class, $this->storage());
     }
 
-    public function testGetData()
+    public function test_GetData()
     {
         $storage = $this->storage(['foo' => 'bar']);
         $this->assertSame('bar', $storage->get('foo'));
     }
 
-    public function testSetData()
+    public function test_SetData()
     {
         $storage = $this->storage();
         $this->assertFalse($storage->has('foo'));
@@ -39,21 +40,21 @@ class ContextSessionStorageTest extends TestCase
         $this->assertSame('bar', $storage->get('foo'));
     }
 
-    public function testSetOverwritesData()
+    public function test_Set_OverwritesData()
     {
         $storage = $this->storage(['foo' => 'bar']);
         $storage->set('foo', 'baz');
         $this->assertSame('baz', $storage->get('foo'));
     }
 
-    public function testRemoveData()
+    public function test_RemoveData()
     {
         $storage = $this->storage(['foo' => 'bar', 'baz' => true]);
         $storage->remove('foo');
         $this->assertNull($storage->get('foo'));
     }
 
-    public function testClearData()
+    public function test_ClearData()
     {
         $storage = $this->storage(['foo' => 'bar', 'baz' => true], $manager);
         $storage->clear();
@@ -61,13 +62,13 @@ class ContextSessionStorageTest extends TestCase
         $this->assertSame([], $manager->writtenData);
     }
 
-    public function testDefaultForMissingValues()
+    public function test_DefaultForMissingValues()
     {
         $storage = $this->storage();
         $this->assertSame('default', $storage->get('foo', 'default'));
     }
 
-    public function testUserId()
+    public function test_UserId()
     {
         $data    = [SessionStorage::USER_KEY => 'user', 'other' => 'value'];
         $storage = $this->storage($data, $manager);
@@ -77,7 +78,7 @@ class ContextSessionStorageTest extends TestCase
         $this->assertSame($data, $manager->writtenData);
     }
 
-    public function testNewUserContext()
+    public function test_NewUserContext()
     {
         $storage = $this->storage([], $manager);
         $this->assertNull($storage->userId());
@@ -90,19 +91,19 @@ class ContextSessionStorageTest extends TestCase
         $this->assertSame([SessionStorage::USER_KEY => 'new'], $manager->writtenData);
     }
 
-    public function testClearSetsNewUserContext()
+    public function test_Clear_SetsNewUserContext()
     {
         $this->storage([], $manager)->clear();
         $this->assertTrue($manager->resetCalled);
     }
 
-    public function testSettingDataWithUserKey_ThrowsException()
+    public function test_SettingDataWithUserKey_ThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->storage([])->set(SessionStorage::USER_KEY, 'test');
+        $this->storage()->set(SessionStorage::USER_KEY, 'test');
     }
 
-    public function testCommitSession()
+    public function test_CommitSession()
     {
         $data    = ['foo' => 'bar', 'bar' => 'baz'];
         $storage = $this->storage($data, $manager);
@@ -112,7 +113,7 @@ class ContextSessionStorageTest extends TestCase
         $this->assertSame($data + ['fizz' => 'buzz'], $manager->writtenData);
     }
 
-    public function testSettingNullDoesNotRemoveData()
+    public function test_SettingNull_DoesNotRemoveData()
     {
         $storage = $this->storage(['foo' => 500], $manager);
         $this->assertTrue($storage->has('foo'));
@@ -122,9 +123,8 @@ class ContextSessionStorageTest extends TestCase
         $this->assertArrayHasKey('foo', $manager->writtenData);
     }
 
-    private function storage(array $data = [], &$manager = null): SessionStorage\ContextSessionStorage
+    private function storage(array $data = [], ?Doubles\MockedSessionContext &$manager = null): Storage
     {
-        $manager = $manager ?: new Doubles\MockedSessionContext();
-        return new SessionStorage\ContextSessionStorage($manager, $data);
+        return new Storage($manager ??= new Doubles\MockedSessionContext(), $data);
     }
 }
