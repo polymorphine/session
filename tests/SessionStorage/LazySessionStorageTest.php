@@ -18,6 +18,19 @@ use Polymorphine\Session\Tests\Doubles;
 
 class LazySessionStorageTest extends TestCase
 {
+    public static function methodCalls(): iterable
+    {
+        return [
+            [fn (SessionStorage $storage) => $storage->newUserContext('user'), ['newUserContext' => ['user']]],
+            [fn (SessionStorage $storage) => $storage->userId(), ['userId' => []]],
+            [fn (SessionStorage $storage) => $storage->has('key'), ['has' => ['key']]],
+            [fn (SessionStorage $storage) => $storage->get('key'), ['get' => ['key', null]]],
+            [fn (SessionStorage $storage) => $storage->set('key', 'value'), ['set' => ['key', 'value']]],
+            [fn (SessionStorage $storage) => $storage->remove('key'), ['remove' => ['key']]],
+            [fn (SessionStorage $storage) => $storage->clear(), ['clear' => []]]
+        ];
+    }
+
     public function test_Instantiation()
     {
         $storage = new SessionStorage\LazySessionStorage(new Doubles\FakeSessionStorageProvider());
@@ -34,18 +47,5 @@ class LazySessionStorageTest extends TestCase
         $storageCall($storage);
         $this->assertTrue($provider->storage->invoked);
         $this->assertSame($expectedMockLog, $provider->storage->called);
-    }
-
-    public function methodCalls(): array
-    {
-        return [
-            [fn (SessionStorage $storage) => $storage->newUserContext('user'), ['newUserContext' => ['user']]],
-            [fn (SessionStorage $storage) => $storage->userId(), ['userId' => []]],
-            [fn (SessionStorage $storage) => $storage->has('key'), ['has' => ['key']]],
-            [fn (SessionStorage $storage) => $storage->get('key'), ['get' => ['key', null]]],
-            [fn (SessionStorage $storage) => $storage->set('key', 'value'), ['set' => ['key', 'value']]],
-            [fn (SessionStorage $storage) => $storage->remove('key'), ['remove' => ['key']]],
-            [fn (SessionStorage $storage) => $storage->clear(), ['clear' => []]]
-        ];
     }
 }
