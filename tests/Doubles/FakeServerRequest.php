@@ -160,6 +160,7 @@ class FakeServerRequest implements ServerRequestInterface
 
     public function getAttribute($name, $default = null)
     {
+        return $default;
     }
 
     public function withAttribute($name, $value): self

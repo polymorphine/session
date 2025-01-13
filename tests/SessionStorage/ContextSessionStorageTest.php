@@ -21,7 +21,7 @@ class ContextSessionStorageTest extends TestCase
 {
     public function testInstantiation()
     {
-        $this->assertInstanceOf(SessionStorage::class, $session = $this->storage());
+        $this->assertInstanceOf(SessionStorage::class, $this->storage());
     }
 
     public function testGetData()
@@ -99,7 +99,7 @@ class ContextSessionStorageTest extends TestCase
     public function testSettingDataWithUserKey_ThrowsException()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->storage([])->set(SessionStorage::USER_KEY, 'test');
+        $this->storage()->set(SessionStorage::USER_KEY, 'test');
     }
 
     public function testCommitSession()
