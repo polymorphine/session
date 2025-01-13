@@ -24,34 +24,28 @@ class LazySessionStorageTest extends TestCase
         $this->assertInstanceOf(SessionStorage::class, $storage);
     }
 
-    /**
-     * @dataProvider methodCalls
-     *
-     * @param string $method
-     * @param array  $params
-     */
-    public function test_MethodCalls(string $method, array $params)
+    /** @dataProvider methodCalls */
+    public function test_MethodCalls(callable $storageCall, array $expectedMockLog)
     {
         $provider = new Doubles\FakeSessionStorageProvider();
-        $mock     = $provider->storage;
         $storage  = new SessionStorage\LazySessionStorage($provider);
-        $this->assertFalse($mock->invoked);
+        $this->assertFalse($provider->storage->invoked);
 
-        $storage->{$method}(...$params);
-        $this->assertTrue($mock->invoked);
-        $this->assertSame([$method => $params], $mock->called);
+        $storageCall($storage);
+        $this->assertTrue($provider->storage->invoked);
+        $this->assertSame($expectedMockLog, $provider->storage->called);
     }
 
     public function methodCalls(): array
     {
         return [
-            ['newUserContext', ['user']],
-            ['userId', []],
-            ['has', ['key']],
-            ['get', ['key', 'default']],
-            ['set', ['key', 'value']],
-            ['remove', ['key']],
-            ['clear', []]
+            [fn (SessionStorage $storage) => $storage->newUserContext('user'), ['newUserContext' => ['user']]],
+            [fn (SessionStorage $storage) => $storage->userId(), ['userId' => []]],
+            [fn (SessionStorage $storage) => $storage->has('key'), ['has' => ['key']]],
+            [fn (SessionStorage $storage) => $storage->get('key'), ['get' => ['key', null]]],
+            [fn (SessionStorage $storage) => $storage->set('key', 'value'), ['set' => ['key', 'value']]],
+            [fn (SessionStorage $storage) => $storage->remove('key'), ['remove' => ['key']]],
+            [fn (SessionStorage $storage) => $storage->clear(), ['clear' => []]]
         ];
     }
 }
