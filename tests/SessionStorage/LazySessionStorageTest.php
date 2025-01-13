@@ -18,7 +18,7 @@ use Polymorphine\Session\Tests\Doubles;
 
 class LazySessionStorageTest extends TestCase
 {
-    public function testInstantiation()
+    public function test_Instantiation()
     {
         $storage = new SessionStorage\LazySessionStorage(new Doubles\FakeSessionStorageProvider());
         $this->assertInstanceOf(SessionStorage::class, $storage);
@@ -30,7 +30,7 @@ class LazySessionStorageTest extends TestCase
      * @param string $method
      * @param array  $params
      */
-    public function testMethodCalls(string $method, array $params)
+    public function test_MethodCalls(string $method, array $params)
     {
         $provider = new Doubles\FakeSessionStorageProvider();
         $mock     = $provider->storage;

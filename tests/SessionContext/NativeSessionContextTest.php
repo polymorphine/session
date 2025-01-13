@@ -29,7 +29,7 @@ class NativeSessionContextTest extends TestCase
         SessionGlobalState::reset();
     }
 
-    public function testInstantiation()
+    public function test_Instantiation()
     {
         $context = $this->context();
         $this->assertInstanceOf(MiddlewareInterface::class, $context);
@@ -37,14 +37,14 @@ class NativeSessionContextTest extends TestCase
         $this->assertInstanceOf(SessionStorageProvider::class, $context);
     }
 
-    public function testSessionNameIsSynchronizedWithCookieName()
+    public function test_SessionName_IsSynchronizedWithCookieName()
     {
         $cookie = new Doubles\MockedCookie('MySESSION');
         $this->context($cookie)->process($this->request(), $this->handler());
         $this->assertSame('MySESSION', SessionGlobalState::$name);
     }
 
-    public function testSessionInitialization()
+    public function test_SessionInitialization()
     {
         $context = $this->context($cookie);
         $handler = $this->handler(function () use ($context) {
@@ -56,7 +56,7 @@ class NativeSessionContextTest extends TestCase
         $this->assertSame('DefaultSessionId', $cookie->value);
     }
 
-    public function testSessionResume()
+    public function test_SessionResume()
     {
         SessionGlobalState::$data = ['foo' => 'bar'];
 
@@ -71,7 +71,7 @@ class NativeSessionContextTest extends TestCase
         $this->assertNull($cookie->value);
     }
 
-    public function testSessionRegenerateId()
+    public function test_SessionRegenerateId()
     {
         SessionGlobalState::$data = ['foo' => 'bar'];
 
@@ -85,7 +85,7 @@ class NativeSessionContextTest extends TestCase
         $this->assertSame('RegeneratedSessionId', $cookie->value);
     }
 
-    public function testSessionDestroy()
+    public function test_SessionDestroy()
     {
         SessionGlobalState::$data = ['foo' => 'bar'];
 
@@ -99,7 +99,7 @@ class NativeSessionContextTest extends TestCase
         $this->assertTrue($cookie->deleted);
     }
 
-    public function testClearedSessionWithNewDataRegeneratesId()
+    public function test_ClearedSession_WithNewData_RegeneratesId()
     {
         SessionGlobalState::$data = ['foo' => 'bar'];
 
@@ -115,7 +115,7 @@ class NativeSessionContextTest extends TestCase
         $this->assertSame('RegeneratedSessionId', $cookie->value);
     }
 
-    public function testProcessingWhileSessionStarted_ThrowsException()
+    public function test_ProcessingWhileSessionStarted_ThrowsException()
     {
         SessionGlobalState::$status = PHP_SESSION_ACTIVE;
         $context = $this->context();
@@ -124,7 +124,7 @@ class NativeSessionContextTest extends TestCase
         $context->process($this->request(true), $this->handler());
     }
 
-    public function testCallingSessionWithoutContextProcessing_ThrowsException()
+    public function test_CallingSessionWithoutContextProcessing_ThrowsException()
     {
         $context = $this->context();
 
