@@ -84,8 +84,8 @@ class DummyResponse implements ResponseInterface
         return $this;
     }
 
-    public function getReasonPhrase()
+    public function getReasonPhrase(): string
     {
-        return $this;
+        return 'OK';
     }
 }
