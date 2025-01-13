@@ -24,7 +24,7 @@ require_once dirname(__DIR__) . '/Fixtures/session-functions.php';
 
 class NativeSessionContextTest extends TestCase
 {
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         SessionGlobalState::reset();
     }
