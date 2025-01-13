@@ -134,13 +134,9 @@ class NativeSessionContextTest extends TestCase
 
     private function request($cookie = false): Doubles\FakeServerRequest
     {
-        $request = new Doubles\FakeServerRequest();
-
-        if ($cookie) {
-            $request->cookies[SessionGlobalState::$name] = SessionGlobalState::$id;
-        }
-
-        return $request;
+        return $cookie
+            ? Doubles\FakeServerRequest::withSessionCookie(SessionGlobalState::$name, SessionGlobalState::$id)
+            : new Doubles\FakeServerRequest();
     }
 
     private function handler(?callable $process = null): Doubles\FakeRequestHandler
@@ -148,9 +144,9 @@ class NativeSessionContextTest extends TestCase
         return new Doubles\FakeRequestHandler($process);
     }
 
-    private function context(&$cookie = null): SessionContext\NativeSessionContext
+    private function context(?Doubles\MockedCookie &$cookie = null): SessionContext\NativeSessionContext
     {
-        $cookie = $cookie ?: new Doubles\MockedCookie(SessionGlobalState::$name);
+        $cookie ??= new Doubles\MockedCookie(SessionGlobalState::$name);
         return new SessionContext\NativeSessionContext($cookie);
     }
 }
