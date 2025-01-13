@@ -12,6 +12,7 @@
 namespace Polymorphine\Session\Tests\SessionStorage;
 
 use PHPUnit\Framework\TestCase;
+use Polymorphine\Session\SessionStorage\ContextSessionStorage as Storage;
 use Polymorphine\Session\SessionStorage;
 use Polymorphine\Session\Tests\Doubles;
 use InvalidArgumentException;
@@ -122,9 +123,8 @@ class ContextSessionStorageTest extends TestCase
         $this->assertArrayHasKey('foo', $manager->writtenData);
     }
 
-    private function storage(array $data = [], &$manager = null): SessionStorage\ContextSessionStorage
+    private function storage(array $data = [], ?Doubles\MockedSessionContext &$manager = null): Storage
     {
-        $manager = $manager ?: new Doubles\MockedSessionContext();
-        return new SessionStorage\ContextSessionStorage($manager, $data);
+        return new Storage($manager ??= new Doubles\MockedSessionContext(), $data);
     }
 }
