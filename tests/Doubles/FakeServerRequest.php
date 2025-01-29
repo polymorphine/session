@@ -18,17 +18,17 @@ use Psr\Http\Message\UriInterface;
 
 class FakeServerRequest implements ServerRequestInterface
 {
-    public array $cookies = [];
-
-    public ?UriInterface    $uri;
-    public ?StreamInterface $stream;
-
     public static function withSessionCookie($name, $id): self
     {
         $request = new self();
         $request->cookies[$name] = $id;
         return $request;
     }
+
+    public array $cookies = [];
+
+    public ?UriInterface    $uri;
+    public ?StreamInterface $stream;
 
     public function getMethod(): string
     {
